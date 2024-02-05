@@ -8,9 +8,11 @@ namespace EasySave
 {
     class Controller
     {
+        //Model model = new Model();
+        
         public Controller()
         {
-            
+            //string test = model.SaveFolder(array);
         }
     }
 }
