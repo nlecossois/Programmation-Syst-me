@@ -8,5 +8,9 @@ namespace EasySave
 {
     class Controller
     {
+        public Controller()
+        {
+            
+        }
     }
 }
