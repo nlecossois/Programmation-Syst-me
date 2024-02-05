@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace EasySave
 {
-    class Class1
+    class Controller
     {
     }
 }
