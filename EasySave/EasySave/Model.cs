@@ -131,7 +131,7 @@ namespace EasySave
             string fileDestinationPath = Path.Combine(destinationPath, fileName);
             try
             {
-                File.Copy(filePath, fileDestinationPath);
+                File.Copy(filePath, fileDestinationPath, true);
                 allSaveFileNames.Add(fileName);
             }
             catch (Exception err)
@@ -243,7 +243,7 @@ namespace EasySave
                     }
                 }
             }
-            catch
+            catch (UnauthorizedAccessException)
             {
             }
             return string.Empty; // No folder found
