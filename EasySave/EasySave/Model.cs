@@ -55,7 +55,7 @@ namespace EasySave
                                     return new string[] { "Erreur : La syntaxe pour utiliser '-' doit contenir deux nombres compris entre 1 et 5 tel que le premier est inférieur au second." };
                                 return Enumerable.Range(start, end - start + 1).Select(i => i.ToString());
                             }
-                            else if (int.TryParse(part, out int number))
+                            else if (int.TryParse(part, out int number) && number <= 5 && number >= 1)
                             {
                                 return new string[] { number.ToString() };
                             }
