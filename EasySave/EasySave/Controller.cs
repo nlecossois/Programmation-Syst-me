@@ -37,7 +37,6 @@ namespace EasySave
                 string filesSaved = model.SaveFolder(appModel.StringToArray(formatPrompt));
                 appView.sendConsole(filesSaved);
             }
-          //string filesSaved = model.SaveFolder(list nolan);
         }
     }
 }
