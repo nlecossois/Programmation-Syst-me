@@ -19,19 +19,26 @@ namespace EasySave
             //The user is asked what they want to save
             string userPrompt = appView.promptConsole("Séquence de sauvegarde ?");
 
-            //Construction of a data table in the model.
-            //This table contains all the files to save.
-            Array formatedPrompt = appModel.formatUserPrompt(userPrompt);
-
-            foreach (int element in formatedPrompt)
-            {
-                appView.sendConsole(element.ToString());
-            }
-
             
+            //Formatage des données envoyées par l'utilisateur
+            string formatPrompt = appModel.formatUserPrompt(userPrompt);
 
+            //Contrôle d'erreur
+            if(formatPrompt.Contains(" : "))
+            {
+                //Envoie du message d'erreur dans la console
+                appView.sendConsole(formatPrompt);
+            }
+            else
+            {
+                //Transformation de la chaine de caractère en tableau
+                List<int> promptFinal = appModel.StringToArray(formatPrompt);
 
-
+                foreach(int element in promptFinal)
+                {
+                    appView.sendConsole(element.ToString());
+                }
+            }
         }
     }
 }
