@@ -32,12 +32,8 @@ namespace EasySave
             else
             {
                 //Transformation de la chaine de caractère en tableau
-                List<int> promptFinal = appModel.StringToArray(formatPrompt);
-
-                foreach(int element in promptFinal)
-                {
-                    appView.sendConsole(element.ToString());
-                }
+                string filesSaved = model.SaveFolder(appModel.StringToArray(formatPrompt));
+                appView.sendConsole(filesSaved);
             }
         }
     }
