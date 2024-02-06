@@ -49,7 +49,7 @@ namespace EasySave
                             if (part.Contains('-'))
                             {
                                 string[] range = part.Split('-');
-                                if (range.Length != 2 || !int.TryParse(range[0], out int start) || !int.TryParse(range[1], out int end) || start >= end)
+                                if (range.Length != 2 || !int.TryParse(range[0], out int start) || !int.TryParse(range[1], out int end) || start >= end || start < 1 || end > 5)
                                     return new string[] { "Erreur : La syntaxe pour utiliser '-' doit contenir deux nombres compris entre 1 et 5 tel que le premier est inférieur au second." };
                                 return Enumerable.Range(start, end - start + 1).Select(i => i.ToString());
                             }
