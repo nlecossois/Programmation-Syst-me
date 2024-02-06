@@ -8,6 +8,8 @@ namespace EasySave
 {
     class Controller
     {
+       Model model = new Model();
+        
         public Controller()
         {
             //Creation of an object which will contain our view
@@ -35,6 +37,7 @@ namespace EasySave
                 string filesSaved = model.SaveFolder(appModel.StringToArray(formatPrompt));
                 appView.sendConsole(filesSaved);
             }
+          //string filesSaved = model.SaveFolder(list nolan);
         }
     }
 }
