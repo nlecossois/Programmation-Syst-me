@@ -15,6 +15,12 @@ namespace EasySave
             Console.WriteLine(">> " + input);
         }
 
+        //Overloading the method to define that we do not want a new line.
+        public void sendConsole(string input, bool newLine)
+        {
+            Console.Write(input);
+        }
+
         //Method that prompts the user to enter a message in the console
         public string promptConsole(string prompt)
         {

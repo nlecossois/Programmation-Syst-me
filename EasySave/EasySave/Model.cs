@@ -2,11 +2,15 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.Json;
 
 namespace EasySave
 {
     class Model
     {
+
+        private string currentLanguage = "EN";
+
         private string textOutput = "";
         private List<string> allSaveFileNames = new List<string>();
 
@@ -14,7 +18,7 @@ namespace EasySave
         public string formatUserPrompt(string userPrompt)
         {
             //We start by declaring our return table
-            string formatedData = "Erreur : Vous n'avez fourni aucune sauvegarde.";
+            string formatedData = "error.noSave";
             if (userPrompt == "*")
             {
                 //Static case where we have all the backups. (*)
@@ -32,49 +36,65 @@ namespace EasySave
                     else
                     {
                         //Error
-                        formatedData = "Erreur : Ce nom de sauvegarde n'est pas reconnu.";
+                        formatedData = "error.notFound";
                     }
                 }
                 else
                 {
-
+                    //We check that the input is not empty.
                     if (string.IsNullOrEmpty(userPrompt))
                     {
-                        formatedData = "Erreur : Vous n'avez fourni aucune sauvegarde.";
+                        formatedData = "error.noSave";
                     }
                     else
                     {
+                        //We divide the string into an array separated by ';'
                         string[] parts = userPrompt.Split(';', StringSplitOptions.RemoveEmptyEntries);
-
                         var result = parts.SelectMany(part =>
                         {
+                            //If the evaluated string contains '-'
                             if (part.Contains('-'))
                             {
+                                //We check that the format is correct
                                 string[] range = part.Split('-');
                                 if (range.Length != 2 || !int.TryParse(range[0], out int start) || !int.TryParse(range[1], out int end) || start >= end || start < 1 || end > 5)
-                                    return new string[] { "Erreur : La syntaxe pour utiliser '-' doit contenir deux nombres compris entre 1 et 5 tel que le premier est inférieur au second." };
+                                    //Si erreur : on renvoie l'erreur
+                                    return new string[] { "error.fillSyntax" };
                                 return Enumerable.Range(start, end - start + 1).Select(i => i.ToString());
                             }
-                            else if (int.TryParse(part, out int number))
+                            //Otherwise we try to convert it to an integer
+                            else if (int.TryParse(part, out int number) && number <= 5 && number >= 1)
                             {
+                                //We return the corresponding character
                                 return new string[] { number.ToString() };
                             }
                             else
                             {
-                                return new string[] { "Erreur : La syntaxe pour utiliser ';' doit contenir des nombres compris entre 1 et 5." };
+                                //If this does not work, we return an error.
+                                return new string[] { "error.separatorSyntax" };
                             }
                         });
-
+                        //We format the return value in a single string
                         formatedData = string.Join(", ", result);
                     }
                 }
             }
+            //We check that the final result does not contain any errors
+            string[] control = formatedData.Split(", ");
+            foreach(string currentControl in control)
+            {
+                if (currentControl.Contains("error")){
+                    formatedData = currentControl;
+                    break;
+                }
+            }
+            //We return the final result (error or accepted result)
             return formatedData;
         }
 
         //Method which transforms the received character string into an array.
         //This function does not present any error cases because here we are sure that the string only contains integers.
-        public List<int> StringToArray(string input)
+        public List<int> StringToList(string input)
         {
             // Divide the string into substrings using the comma as separator
             string[] subInput = input.Split(',');
@@ -91,6 +111,56 @@ namespace EasySave
             //We return the value
             return resultArray;
         }
+
+
+        //Method for recovering the current language
+        public string getLang()
+        {
+            return currentLanguage;
+        }
+
+        //Method for setting the current language
+        public void setLang(string lang)
+        {
+            currentLanguage = lang;
+        }
+
+        //Method that retrieves messages from the lang file
+        public string getMessage(string messageKey, string lang)
+        {
+            // Retrieving the parent directory path of the current directory
+            string parentDirectory = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName;
+            // Building the full path of the lang file
+            string filePath = Path.Combine(parentDirectory, $"lang/{lang}.json");
+            string finalMessage = "";
+            try
+            {
+                string jsonString = File.ReadAllText(filePath);
+                using (JsonDocument document = JsonDocument.Parse(jsonString))
+                {
+                    JsonElement root = document.RootElement;
+
+                    // Check if property exists in JSON
+                    if (root.TryGetProperty(messageKey, out JsonElement messageValue))
+                    {
+                        finalMessage = messageValue.GetString();
+                    }
+                    else
+                    {
+                        //Here the error is hard defined because the language is not yet defined.
+                        finalMessage = $"Error : Parameter '{messageKey}' not found.";
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                //Here the error is hard defined because the language is not yet defined.
+                finalMessage = $"Error : {ex.Message}. The app failed to run.";
+            }
+            return finalMessage;
+        }
+
+
       public string SaveFolder(List<int> workOfSave)
         { 
             foreach (int index in workOfSave)
@@ -105,12 +175,12 @@ namespace EasySave
                     addFolders(sourcePath, destinationPath, index);
                     if (allSaveFileNames.Count() > 0)
                     {
-                        textOutput += "The files of " + "Source" + index + ":" + Environment.NewLine + string.Join(Environment.NewLine, allSaveFileNames) + " have been copied." + Environment.NewLine;
+                        textOutput += ">> //message.saver.files//" + index + "//://" + Environment.NewLine + string.Join(Environment.NewLine, allSaveFileNames) + " //message.saver.copied//" + Environment.NewLine;
                     }
                 }
                 else
                 {
-                    textOutput = "Folder Source" + index + " not found check if your folders named 'Source+number'(ex: Source1)";
+                    textOutput = "message.saver.folderSource//" + index + " //message.saver.folderNotFound//";
                 }
             }
             return textOutput;
