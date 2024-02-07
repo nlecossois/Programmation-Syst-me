@@ -330,10 +330,10 @@ namespace EasySave
             {
                 Directory.CreateDirectory(Path.Combine(Path.GetDirectoryName(path), "Destination" + index));  
             }
-            catch(DirectoryNotFoundException)
+            catch(ArgumentNullException)
             {
                 sourceFolderList.Add("Source" + index);
-                 textOutput = "//message.saver.folder// " + string.Join(", ", sourceFolderList) + " //message.saver.notFound//" + Environment.NewLine; 
+                 textOutput += "//message.saver.folder// " + string.Join(", ", sourceFolderList) + " //message.saver.notFound//" + Environment.NewLine; 
             }
         }
     }
