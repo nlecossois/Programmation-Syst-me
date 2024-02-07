@@ -13,6 +13,7 @@ namespace EasySave
 
         private string textOutput = "";
         private List<string> allSaveFileNames = new List<string>();
+        private List<string> sourceFolderList = new List<string>();
 
         //Method that transforms the user's request from a character string to an array.
         public string formatUserPrompt(string userPrompt)
@@ -62,7 +63,9 @@ namespace EasySave
                                     return new string[] { "error.fillSyntax" };
                                 return Enumerable.Range(start, end - start + 1).Select(i => i.ToString());
                             }
+
                             //Otherwise we try to convert it to an integer
+
                             else if (int.TryParse(part, out int number) && number <= 5 && number >= 1)
                             {
                                 //We return the corresponding character
@@ -177,10 +180,12 @@ namespace EasySave
                     {
                         textOutput += ">> //message.saver.files//" + index + "//://" + Environment.NewLine + string.Join(Environment.NewLine, allSaveFileNames) + " //message.saver.copied//" + Environment.NewLine;
                     }
-                }
-                else
-                {
-                    textOutput = "message.saver.folderSource//" + index + " //message.saver.folderNotFound//";
+
+                    else
+                    {
+                        textOutput += "No files in " + "Source" + index;
+                    }
+
                 }
             }
             return textOutput;
@@ -201,7 +206,7 @@ namespace EasySave
             string fileDestinationPath = Path.Combine(destinationPath, fileName);
             try
             {
-                File.Copy(filePath, fileDestinationPath);
+                File.Copy(filePath, fileDestinationPath, true);
                 allSaveFileNames.Add(fileName);
             }
             catch (Exception err)
@@ -313,7 +318,7 @@ namespace EasySave
                     }
                 }
             }
-            catch
+            catch (UnauthorizedAccessException)
             {
             }
             return string.Empty; // No folder found
@@ -321,7 +326,15 @@ namespace EasySave
 
         public void createFolder(string path, int index)
         {
-            Directory.CreateDirectory(Path.Combine(Path.GetDirectoryName(path), "Destination" + index));
+            try
+            {
+                Directory.CreateDirectory(Path.Combine(Path.GetDirectoryName(path), "Destination" + index));  
+            }
+            catch(DirectoryNotFoundException)
+            {
+                sourceFolderList.Add("Source" + index);
+                 textOutput = "Folder " + string.Join(", ", sourceFolderList) + " not found check if your folders named 'Source+number'(ex: Source1)" + Environment.NewLine; 
+            }
         }
     }
 }
