@@ -183,7 +183,7 @@ namespace EasySave
 
                     else
                     {
-                        textOutput += "//message.saver.noFile//" + index + Environment.NewLine;
+                        textOutput += "//message.saver.noFile//" + index + Environment.NewLine + "//";
                     }
 
                 }

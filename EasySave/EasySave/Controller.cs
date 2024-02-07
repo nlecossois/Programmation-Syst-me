@@ -17,7 +17,8 @@ namespace EasySave
             Model appModel = new Model();
 
             //Ask the user for the language
-            string currentLang = appView.promptConsole(appModel.getMessage("message.chooseLang", appModel.getLang()));
+            string currentLang = appView.promptConsole(appModel.getMessage("message.chooseLang", appModel.getLang())).ToUpper();
+
             //Apply this language to the entire program
             if (currentLang == "FR" || currentLang == "EN") 
             {
