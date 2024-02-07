@@ -183,7 +183,7 @@ namespace EasySave
 
                     else
                     {
-                        textOutput += "No files in " + "Source" + index;
+                        textOutput += "//message.saver.noFile//" + index + Environment.NewLine;
                     }
 
                 }
@@ -333,7 +333,7 @@ namespace EasySave
             catch(DirectoryNotFoundException)
             {
                 sourceFolderList.Add("Source" + index);
-                 textOutput = "Folder " + string.Join(", ", sourceFolderList) + " not found check if your folders named 'Source+number'(ex: Source1)" + Environment.NewLine; 
+                 textOutput = "//message.saver.folder// " + string.Join(", ", sourceFolderList) + " //message.saver.notFound//" + Environment.NewLine; 
             }
         }
     }
