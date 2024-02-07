@@ -9,6 +9,7 @@ namespace EasySave
     {
         private string textOutput = "";
         private List<string> allSaveFileNames = new List<string>();
+        private List<string> sourceFolderList = new List<string>();
 
         //Method that transforms the user's request from a character string to an array.
         public string formatUserPrompt(string userPrompt)
@@ -107,10 +108,10 @@ namespace EasySave
                     {
                         textOutput += "The files of " + "Source" + index + ":" + Environment.NewLine + string.Join(Environment.NewLine, allSaveFileNames) + " have been copied." + Environment.NewLine;
                     }
-                }
-                else
-                {
-                    textOutput = "Folder Source" + index + " not found check if your folders named 'Source+number'(ex: Source1)";
+                    else
+                    {
+                        textOutput += "No files in " + "Source" + index;
+                    }
                 }
             }
             return textOutput;
@@ -251,7 +252,15 @@ namespace EasySave
 
         public void createFolder(string path, int index)
         {
-            Directory.CreateDirectory(Path.Combine(Path.GetDirectoryName(path), "Destination" + index));
+            try
+            {
+                Directory.CreateDirectory(Path.Combine(Path.GetDirectoryName(path), "Destination" + index));  
+            }
+            catch(DirectoryNotFoundException)
+            {
+                sourceFolderList.Add("Source" + index);
+                 textOutput = "Folder " + string.Join(", ", sourceFolderList) + " not found check if your folders named 'Source+number'(ex: Source1)" + Environment.NewLine; 
+            }
         }
     }
 }
