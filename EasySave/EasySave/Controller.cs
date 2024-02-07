@@ -7,9 +7,7 @@ using System.Threading.Tasks;
 namespace EasySave
 {
     class Controller
-    {
-       Model model = new Model();
-        
+    {   
         public Controller()
         {
             //Creation of an object which will contain our view
