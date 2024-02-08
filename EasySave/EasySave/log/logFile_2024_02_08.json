@@ -1,0 +1,27 @@
+{
+  "Time": "08/02/2024 11:18:26",
+  "Save": "Save1",
+  "File": "terst.txt",
+  "Source Path": "C:\\Users\\lecos\\Desktop\\source\\Source1",
+  "Destination Path": "C:\\Users\\lecos\\Desktop\\source\\Destination1",
+  "File Size": 9,
+  "Transfer Time (ms)": 1
+},
+{
+  "Time": "08/02/2024 11:18:26",
+  "Save": "Save1",
+  "File": "ttt.txt",
+  "Source Path": "C:\\Users\\lecos\\Desktop\\source\\Source1",
+  "Destination Path": "C:\\Users\\lecos\\Desktop\\source\\Destination1",
+  "File Size": 7,
+  "Transfer Time (ms)": 0
+},
+{
+  "Time": "08/02/2024 11:18:26",
+  "Save": "Save3",
+  "File": "terst.txt",
+  "Source Path": "C:\\Users\\lecos\\Desktop\\source\\Source3",
+  "Destination Path": "C:\\Users\\lecos\\Desktop\\source\\Destination3",
+  "File Size": 9,
+  "Transfer Time (ms)": 0
+},
