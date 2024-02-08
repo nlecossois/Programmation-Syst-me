@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
+using System.Text.Json.Serialization;
+using System.Diagnostics;
 
 namespace EasySave
 {
@@ -164,7 +166,7 @@ namespace EasySave
         }
 
 
-      public string SaveFolder(List<int> workOfSave)
+        public string SaveFolder(List<int> workOfSave)
         { 
             foreach (int index in workOfSave)
             {
@@ -190,24 +192,95 @@ namespace EasySave
             }
             return textOutput;
         }
+        private JsonElement SerializeContentLog(string SaveName, string FileName, string SourcePath, string DestinationPath, long FileSize, long TransferTime)
+        {
+            using (var stream = new System.IO.MemoryStream())
+            {
+                using (var writer = new System.IO.StreamWriter(stream))
+                {
+                    using (var jsonWriter = new Utf8JsonWriter(stream))
+                    {
+                        jsonWriter.WriteStartObject();
+                        jsonWriter.WriteString("Time", DateTime.Now);
+                        jsonWriter.WriteString("Save", SaveName);
+                        jsonWriter.WriteString("File", FileName);
+                        jsonWriter.WriteString("Source Path", SourcePath);
+                        jsonWriter.WriteString("Destination Path", DestinationPath);
+                        jsonWriter.WriteNumber("File Size", FileSize);
+                        jsonWriter.WriteNumber("Transfer Time (ms)", TransferTime);
+                        jsonWriter.WriteEndObject();
+                    }
+                }
+
+                stream.Seek(0, System.IO.SeekOrigin.Begin);
+
+                var logInfo = JsonDocument.Parse(stream);
+
+                return logInfo.RootElement;
+            }
+        }
+
+
+
+
+
+
+        private void WriteContentLog(JsonElement log)
+        {
+            string logFileName = $"log/logFile_{DateTime.Now:yyyy_MM_dd}.json";
+            if (!File.Exists(logFileName))
+            {
+                File.WriteAllText(logFileName, "{}");
+            }
+            // Charger le contenu actuel du fichier JSON
+            string jsonString = File.ReadAllText(logFileName);
+
+            // Analyser le contenu JSON en un objet JsonDocument
+            using (JsonDocument document = JsonDocument.Parse(jsonString))
+            {
+                // Créer une copie de l'objet JsonDocument
+                using (MemoryStream ms = new MemoryStream())
+                {
+                    using (Utf8JsonWriter writer = new Utf8JsonWriter(ms))
+                    {
+                        // Copier le contenu actuel dans le nouveau writer
+                        document.RootElement.WriteTo(writer);
+
+                        // Ajouter le nouvel élément à la racine de l'objet JSON
+                        log.WriteTo(writer);
+                    }
+
+                    // Enregistrer le contenu mis à jour dans le fichier
+                    File.WriteAllBytes(logFileName, ms.ToArray());
+                }
+            }
+        }
+
+
+
 
         public void addFiles(string sourcePath, string destinationPath, int index)
         {
             string[] allFiles = Directory.GetFiles(sourcePath);
             foreach (string filePath in allFiles)
             {
-                addFile(destinationPath, filePath);
+                addFile(destinationPath, filePath, sourcePath);
             }
         }
 
-        public void addFile(string destinationPath, string filePath)
+        public void addFile(string destinationPath, string filePath, string sourcePath)
         {
             string fileName = Path.GetFileName(filePath);
             string fileDestinationPath = Path.Combine(destinationPath, fileName);
+            Stopwatch stopwatch = new Stopwatch();
             try
             {
+                stopwatch.Start();
                 File.Copy(filePath, fileDestinationPath, true);
                 allSaveFileNames.Add(fileName);
+                stopwatch.Stop();
+                JsonElement logContent = SerializeContentLog("Name", fileName, sourcePath, destinationPath, fileName.Length, stopwatch.ElapsedMilliseconds);
+                WriteContentLog(logContent);         
             }
             catch (Exception err)
             {
