@@ -13,6 +13,10 @@ namespace EasySave
 
         private string currentLanguage = "EN";
 
+        private long totalSize = 0;
+        private int totalFile = 0;
+        private long sizeLeft = 0;
+        private int fileLeft = 0;
         private string textOutput = "";
         private List<string> allSaveFileNames = new List<string>();
         private List<string> sourceFolderList = new List<string>();
@@ -167,16 +171,31 @@ namespace EasySave
 
 
         public string SaveFolder(List<int> workOfSave)
-        { 
+        {
+            // Get all file Info for State File
             foreach (int index in workOfSave)
             {
+              string sourcePath = GetParentDirectory(GetFolderPath("Source" + index), "Source" + index);
+                if (sourcePath != null)
+                {
+                    getAllFileInfo(sourcePath);
+                }
+            }
+            fileLeft = totalFile;
+            sizeLeft = totalSize;
+            // Add all file in new folder
+                foreach (int index in workOfSave)
+                {
                 allSaveFileNames.Clear();
                 string sourcePath = GetParentDirectory(GetFolderPath("Source" + index), "Source" + index);
+                // Create Destination folder in the same folder of source folder if Destination folder are not found
                 createFolder(sourcePath, index);
                 string destinationPath = GetParentDirectory(GetFolderPath("Destination" + index), "Destination" + index);
                 if (sourcePath != null)
                 {
+                    // Add files of the target source folder
                     addFiles(sourcePath, destinationPath, index);
+                    // Add folder of the target source folder
                     addFolders(sourcePath, destinationPath, index);
                     if (allSaveFileNames.Count() > 0)
                     {
@@ -193,8 +212,26 @@ namespace EasySave
             return textOutput;
         }
 
+        public int getAllFileInfo(string path)
+        {
+            string[] fileInFolder = Directory.GetFiles(path);
+            totalFile += fileInFolder.Length;
+            foreach (string file in fileInFolder)
+            {
+                FileInfo fileSize = new FileInfo(file);
+                totalSize += fileSize.Length;
+            }
+
+            // Recursively count files in subfolders
+            string[] subfolders = Directory.GetDirectories(path);
+            foreach (string sousDossier in subfolders)
+            {
+                getAllFileInfo(sousDossier);
+            }
+            return totalFile;
+        }
         //Method that formats log content
-        private JsonElement SerializeContentLog(string SaveName, string FileName, string SourcePath, string DestinationPath, long FileSize, long TransferTime)
+        private JsonElement SerializeContent(string SaveName, string FileName, string SourcePath, string DestinationPath, long FileSize, long TransferTime, bool etat = false)
         {
             using (var stream = new System.IO.MemoryStream())
             {
@@ -206,12 +243,23 @@ namespace EasySave
                     //Add properties to JSON
                     jsonWriter.WriteString("Time", DateTime.Now.ToString());
                     jsonWriter.WriteString("Save", SaveName);
-                    jsonWriter.WriteString("File", FileName);
                     jsonWriter.WriteString("Source Path", SourcePath);
                     jsonWriter.WriteString("Destination Path", DestinationPath);
-                    jsonWriter.WriteNumber("File Size", FileSize);
-                    jsonWriter.WriteNumber("Transfer Time (ms)", TransferTime);
-
+                    if (!etat)
+                    {
+                        jsonWriter.WriteString("File", FileName);
+                        jsonWriter.WriteNumber("File Size", FileSize);
+                        jsonWriter.WriteNumber("Transfer Time (ms)", TransferTime);
+                    }
+                    else
+                    {
+                        fileLeft -= 1;
+                        sizeLeft -= FileSize;
+                        jsonWriter.WriteNumber("File To Copy", totalFile);
+                        jsonWriter.WriteNumber("File Left", fileLeft);
+                        jsonWriter.WriteNumber("File Size Left To Copy", sizeLeft);
+                        jsonWriter.WriteNumber("File Size To Copy", totalSize);
+                    }
                     //End of JSON object
                     jsonWriter.WriteEndObject();
                 }
@@ -252,6 +300,26 @@ namespace EasySave
             //We write the log in the log file
             File.AppendAllText(logFileName, logContent + "," + Environment.NewLine);
         }
+        private void WriteContentState(JsonElement state)
+        {
+            //We retrieve the address of the log file
+            string parentDirectory = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName;
+            string stateFileName = Path.Combine(parentDirectory, $"log/state.json");
+
+            //If the day's log file does not exist: we create it
+            if (!File.Exists(stateFileName))
+            {
+                using (StreamWriter sw = new StreamWriter(stateFileName))
+                {
+                    sw.Close();
+                }
+            }
+
+            //We format the content of the log to register
+            string stateContent = JsonSerializer.Serialize(state, new JsonSerializerOptions { WriteIndented = true });
+            //We write the log in the log file
+            File.WriteAllText(stateFileName, stateContent);
+        }
 
         public void addFiles(string sourcePath, string destinationPath, int index)
         {
@@ -264,6 +332,7 @@ namespace EasySave
 
         public void addFile(string destinationPath, string filePath, string sourcePath, int index)
         {
+            FileInfo fileSize = new FileInfo(filePath);
             string fileName = Path.GetFileName(filePath);
             string fileDestinationPath = Path.Combine(destinationPath, fileName);
             Stopwatch stopwatch = new Stopwatch();
@@ -276,10 +345,15 @@ namespace EasySave
                 allSaveFileNames.Add(fileName);
                 //We stop the clock
                 stopwatch.Stop();
+                totalSize += fileName.Length;
                 //We format the content of the log
-                JsonElement logContent = SerializeContentLog("Save" + index, fileName, sourcePath, destinationPath, fileName.Length, stopwatch.ElapsedMilliseconds);
+                JsonElement logContent = SerializeContent("Save" + index, fileName, sourcePath, destinationPath, fileSize.Length, stopwatch.ElapsedMilliseconds);
+                //We format the content of the state
+                JsonElement stateContent = SerializeContent("Save" + index, fileName, sourcePath, destinationPath, fileSize.Length, stopwatch.ElapsedMilliseconds, true);
                 //We enter it in the daily log file
-                WriteContentLog(logContent);         
+                WriteContentLog(logContent);
+                //We enter it in state file
+                WriteContentState(stateContent);
             }
             catch (Exception err)
             {
