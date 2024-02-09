@@ -224,9 +224,9 @@ namespace EasySave
 
             // Recursively count files in subfolders
             string[] subfolders = Directory.GetDirectories(path);
-            foreach (string sousDossier in subfolders)
+            foreach (string subfolder in subfolders)
             {
-                getAllFileInfo(sousDossier);
+                getAllFileInfo(subfolder);
             }
             return totalFile;
         }
