@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.Diagnostics;
+using Newtonsoft.Json.Linq;
+using System.Text.RegularExpressions;
 
 namespace EasySave
 {
@@ -25,7 +26,7 @@ namespace EasySave
         public string formatUserPrompt(string userPrompt)
         {
             //We start by declaring our return table
-            string formatedData = "error.noSave";
+            string formatedData = "{{ error.noSave }}";
             if (userPrompt == "*")
             {
                 //Static case where we have all the backups. (*)
@@ -43,7 +44,7 @@ namespace EasySave
                     else
                     {
                         //Error
-                        formatedData = "error.notFound";
+                        formatedData = "{{ error.notFound }}";
                     }
                 }
                 else
@@ -51,7 +52,7 @@ namespace EasySave
                     //We check that the input is not empty.
                     if (string.IsNullOrEmpty(userPrompt))
                     {
-                        formatedData = "error.noSave";
+                        formatedData = "{{ error.noSave }}";
                     }
                     else
                     {
@@ -66,7 +67,7 @@ namespace EasySave
                                 string[] range = part.Split('-');
                                 if (range.Length != 2 || !int.TryParse(range[0], out int start) || !int.TryParse(range[1], out int end) || start >= end || start < 1 || end > 5)
                                     //Si erreur : on renvoie l'erreur
-                                    return new string[] { "error.fillSyntax" };
+                                    return new string[] { "{{ error.fillSyntax }}" };
                                 return Enumerable.Range(start, end - start + 1).Select(i => i.ToString());
                             }
 
@@ -80,7 +81,7 @@ namespace EasySave
                             else
                             {
                                 //If this does not work, we return an error.
-                                return new string[] { "error.separatorSyntax" };
+                                return new string[] { "{{ error.separatorSyntax }}" };
                             }
                         });
                         //We format the return value in a single string
@@ -135,38 +136,41 @@ namespace EasySave
         }
 
         //Method that retrieves messages from the lang file
-        public string getMessage(string messageKey, string lang)
+        public string getMessage(string message)
         {
-            // Retrieving the parent directory path of the current directory
+            //Recovering the parent folder
             string parentDirectory = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName;
-            // Building the full path of the lang file
-            string filePath = Path.Combine(parentDirectory, $"lang/{lang}.json");
-            string finalMessage = "";
+            //Recovery of the lang file
+            string filePath = Path.Combine(parentDirectory, $"lang/{currentLanguage}.json");
             try
             {
+                //Retrieving file contents
                 string jsonString = File.ReadAllText(filePath);
-                using (JsonDocument document = JsonDocument.Parse(jsonString))
+                //Serializing file contents
+                JObject json = JObject.Parse(jsonString);
+                //Definition of the search pattern
+                string pattern = @"\{\{(.+?)\}\}";
+                //Searching for possible patterns and adding them to a collection
+                MatchCollection matches = Regex.Matches(message, pattern);
+                //For each pattern
+                foreach (Match match in matches)
                 {
-                    JsonElement root = document.RootElement;
-
-                    // Check if property exists in JSON
-                    if (root.TryGetProperty(messageKey, out JsonElement messageValue))
-                    {
-                        finalMessage = messageValue.GetString();
-                    }
-                    else
-                    {
-                        //Here the error is hard defined because the language is not yet defined.
-                        finalMessage = $"Error : Parameter '{messageKey}' not found.";
-                    }
+                    //Recover the key by removing spaces around it
+                    string key = match.Groups[1].Value.Trim();
+                    //Retrieve the corresponding value in the JSON
+                    string replacement = json[key]?.ToString() ?? match.Value;
+                    //Replace in input string
+                    message = message.Replace(match.Value, replacement);
                 }
+                //We return the result
+                
+
             }
-            catch (Exception ex)
+            catch(Exception ex)
             {
-                //Here the error is hard defined because the language is not yet defined.
-                finalMessage = $"Error : {ex.Message}. The app failed to run.";
+                message = $"Error : {ex.Message}" + Environment.NewLine + "The application failed to run !";
             }
-            return finalMessage;
+            return message;
         }
 
 
@@ -199,12 +203,12 @@ namespace EasySave
                     addFolders(sourcePath, destinationPath, index);
                     if (allSaveFileNames.Count() > 0)
                     {
-                        textOutput += ">> //message.saver.files//" + index + "//://" + Environment.NewLine + string.Join(Environment.NewLine, allSaveFileNames) + " //message.saver.copied//" + Environment.NewLine;
+                        textOutput += "{{ message.saver.files }}" + index + " : " + Environment.NewLine + string.Join(Environment.NewLine, allSaveFileNames) + " {{ message.saver.copied }}" + Environment.NewLine;
                     }
 
                     else
                     {
-                        textOutput += "//message.saver.noFile//" + index + Environment.NewLine + "//";
+                        textOutput += "{{ message.saver.noFile }}" + index + Environment.NewLine;
                     }
 
                 }
@@ -479,7 +483,7 @@ namespace EasySave
             catch(ArgumentNullException)
             {
                 sourceFolderList.Add("Source" + index);
-                textOutput = "//message.saver.folder// " + string.Join(", ", sourceFolderList) + " //message.saver.notFound//" + Environment.NewLine; 
+                textOutput += "{{ message.saver.folder }} " + string.Join(", ", sourceFolderList) + " {{ message.saver.notFound }}" + Environment.NewLine; 
             }
         }
     }
