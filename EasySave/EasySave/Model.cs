@@ -254,6 +254,7 @@ namespace EasySave
                         jsonWriter.WriteString("File", FileName);
                         jsonWriter.WriteNumber("File Size", FileSize);
                         jsonWriter.WriteNumber("Transfer Time (ms)", TransferTime);
+                        jsonWriter.WriteString("Transfert State", "On");
                     }
                     else
                     {
@@ -263,6 +264,7 @@ namespace EasySave
                         jsonWriter.WriteNumber("File Left", fileLeft);
                         jsonWriter.WriteNumber("File Size Left To Copy", sizeLeft);
                         jsonWriter.WriteNumber("File Size To Copy", totalSize);
+                        jsonWriter.WriteString("Transfert State", "Off");
                     }
                     //End of JSON object
                     jsonWriter.WriteEndObject();
