@@ -113,9 +113,9 @@ namespace EasySave
             // Convert substrings to integers and store in array
             for (int i = 0; i < subInput.Length; i++)
             {
-                if (int.TryParse(subInput[i].Trim(), out int valeur))
+                if (int.TryParse(subInput[i].Trim(), out int val))
                 {
-                    resultArray.Add(valeur);
+                    resultArray.Add(val);
                 }
             }
             //We return the value
