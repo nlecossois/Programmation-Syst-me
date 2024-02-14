@@ -10,5 +10,7 @@
 	"error.noSave": "Erreur : Vous n'avez fourni aucune sauvegarde.",
 	"error.notFound": "Erreur : Ce nom de sauvegarde n'est pas reconnu.",
 	"error.fillSyntax": "Erreur : La syntaxe pour utiliser '-' doit contenir deux nombres compris entre 1 et 5 tel que le premier est inférieur au second.",
-	"error.separatorSyntax": "Erreur : La syntaxe pour utiliser ';' doit contenir des nombres compris entre 1 et 5."
+	"error.separatorSyntax": "Erreur : La syntaxe pour utiliser ';' doit contenir des nombres compris entre 1 et 5.",
+	"message.logFormat": "Choisissez le format du fichier de journalisation (XML/JSON).",
+	"error.invalidLogFormat" : "Erreur : Le format de fichier de journalisation est incorrect."
 }

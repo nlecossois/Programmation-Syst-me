@@ -10,5 +10,7 @@
 	"error.noSave": "Error: You have provided no backup.",
 	"error.notFound": "Error: This backup name is not recognized.",
 	"error.fillSyntax": "Error: The syntax to use '-' must contain two numbers between 1 and 5 where the first is less than the second.",
-	"error.separatorSyntax": "Error: The syntax to use ';' must contain numbers between 1 and 5."
+	"error.separatorSyntax": "Error: The syntax to use ';' must contain numbers between 1 and 5.",
+	"message.logFormat": "Choose the Logging File Format (XML/JSON).",
+	"error.invalidLogFormat" : "Error: Logging file format is incorrect."
 }
