@@ -6,13 +6,12 @@ using System.Text.Json;
 using System.Diagnostics;
 using Newtonsoft.Json.Linq;
 using System.Text.RegularExpressions;
-using System.Xml;
 
 namespace EasySave
 {
     class Model
     {
-        private string logFormat = "JSON";
+
         private string currentLanguage = "EN";
 
         private long totalSize = 0;
@@ -136,12 +135,6 @@ namespace EasySave
             currentLanguage = lang;
         }
 
-        //Methode for serring the current log format
-        public void setLogFormat(string format)
-        {
-            logFormat = format;
-        }
-
         //Method that retrieves messages from the lang file
         public string getMessage(string message)
         {
@@ -242,7 +235,7 @@ namespace EasySave
             return totalFile;
         }
         //Method that formats log content
-        private JsonElement SerializeContent(string SaveName, string FileName, string SourcePath, string DestinationPath, long FileSize, long TransferTime, long CryptTime, bool etat = false)
+        private JsonElement SerializeContent(string SaveName, string FileName, string SourcePath, string DestinationPath, long FileSize, long TransferTime, bool etat = false)
         {
             using (var stream = new System.IO.MemoryStream())
             {
@@ -261,7 +254,7 @@ namespace EasySave
                         jsonWriter.WriteString("File", FileName);
                         jsonWriter.WriteNumber("File Size", FileSize);
                         jsonWriter.WriteNumber("Transfer Time (ms)", TransferTime);
-                        jsonWriter.WriteNumber("Encryption Time (ms)", CryptTime);
+                        jsonWriter.WriteString("Transfert State", "On");
                     }
                     else
                     {
@@ -271,14 +264,7 @@ namespace EasySave
                         jsonWriter.WriteNumber("File Left", fileLeft);
                         jsonWriter.WriteNumber("File Size Left To Copy", sizeLeft);
                         jsonWriter.WriteNumber("File Size To Copy", totalSize);
-                        if(fileLeft == 0)
-                        {
-                            jsonWriter.WriteString("Transfert State", "Off");
-                        } else
-                        {
-                            jsonWriter.WriteString("Transfert State", "On");
-                        }
-                        
+                        jsonWriter.WriteString("Transfert State", "Off");
                     }
                     //End of JSON object
                     jsonWriter.WriteEndObject();
@@ -299,7 +285,7 @@ namespace EasySave
             }
         }
 
-        //Method that writes to a json log file
+        //Method that writes to a log file
         private void WriteContentLog(JsonElement log)
         {
             //We retrieve the address of the log file
@@ -320,83 +306,6 @@ namespace EasySave
             //We write the log in the log file
             File.AppendAllText(logFileName, logContent + "," + Environment.NewLine);
         }
-
-        //Method the writes to an xml log file
-        private void WriteXmlLog(string SaveName, string FileName, string SourcePath, string DestinationPath, long FileSize, long TransfertTime, long CryptTime)
-        {
-            //We get the address of the file
-            string parentDirectory = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName;
-            string filePath = Path.Combine(parentDirectory, $"log/logFile_{DateTime.Now:yyyy_MM_dd}.xml");
-
-            //We define the identifier of our log as the date and time plus a random number to guarantee its uniqueness
-            Random random = new Random();
-            int logId = random.Next(10000);
-            string LogTimeValue = DateTime.Now.ToString() + " #" + logId;
-
-            //We define the content of our xml tag
-            string LogContent = Environment.NewLine + "Save: " + SaveName + Environment.NewLine +
-                         "Source Path: " + SourcePath + Environment.NewLine +
-                         "Destination Path: " + DestinationPath + Environment.NewLine +
-                         "File: " + FileName + Environment.NewLine +
-                         "File Size: " + FileSize + "o" + Environment.NewLine +
-                         "Transfert Time: " + TransfertTime + "ms" + Environment.NewLine +
-                         "Encryption Time: " + CryptTime + "ms" + Environment.NewLine;
-
-
-            //We check if the XML file does not exist to be able to initialize it
-            if (!File.Exists(filePath))
-            {
-                //Create a new XML file
-                XmlWriterSettings settings = new XmlWriterSettings();
-                //We set the file indentation to "true" and the document encoding to UTF-8.
-                settings.Indent = true;
-                settings.Encoding = System.Text.Encoding.UTF8;
-
-
-
-                //Document creation
-                using (XmlWriter writer = XmlWriter.Create(filePath, settings))
-                {
-                    //Writing data into this new document
-                    writer.WriteStartDocument();
-                    writer.WriteStartElement("Root");
-                    writer.WriteStartElement("Element");
-
-                    writer.WriteAttributeString("LogTime", LogTimeValue);
-                    writer.WriteString(LogContent);
-
-                    writer.WriteEndElement();
-                    writer.WriteEndElement();
-                    writer.WriteEndDocument();
-
-                }
-            } else
-            {
-                //If the document already exists, we write the new logs afterwards
-                //We load the existing content of the XML file into an XmlDocument
-                XmlDocument doc = new XmlDocument();
-                doc.Load(filePath);
-
-                //We select the root element
-                XmlNode root = doc.SelectSingleNode("Root");
-
-                //We create a new element with its data
-                XmlElement newElement = doc.CreateElement("Element");
-
-                newElement.SetAttribute("LogTime", LogTimeValue);
-                newElement.InnerText = LogContent;
-
-                //We add the new element to the root element
-                root.AppendChild(newElement);
-
-                //We save the document.
-                doc.Save(filePath);
-
-            }
-
-
-        }
-
         private void WriteContentState(JsonElement state)
         {
             //We retrieve the address of the log file
@@ -443,29 +352,14 @@ namespace EasySave
                 //We stop the clock
                 stopwatch.Stop();
                 totalSize += fileName.Length;
-
-                //Simulation of crypt time for v2.0
-                long cryptTime = 0;
-
+                //We format the content of the log
+                JsonElement logContent = SerializeContent("Save" + index, fileName, sourcePath, destinationPath, fileSize.Length, stopwatch.ElapsedMilliseconds);
                 //We format the content of the state
-                JsonElement stateContent = SerializeContent("Save" + index, fileName, sourcePath, destinationPath, fileSize.Length, stopwatch.ElapsedMilliseconds, cryptTime, true);
+                JsonElement stateContent = SerializeContent("Save" + index, fileName, sourcePath, destinationPath, fileSize.Length, stopwatch.ElapsedMilliseconds, true);
+                //We enter it in the daily log file
+                WriteContentLog(logContent);
                 //We enter it in state file
                 WriteContentState(stateContent);
-
-                
-
-                //If log format is json:
-                if(logFormat == "JSON")
-                {
-                    //We format the content of the log
-                    JsonElement logContent = SerializeContent("Save" + index, fileName, sourcePath, destinationPath, fileSize.Length, stopwatch.ElapsedMilliseconds, cryptTime);
-                    //We enter it in the daily log file
-                    WriteContentLog(logContent);
-                } else if(logFormat == "XML")
-                {
-                    //In the case of the log format is xml
-                    WriteXmlLog("Save" + index, fileName, sourcePath, destinationPath, fileSize.Length, stopwatch.ElapsedMilliseconds, cryptTime);
-                }
             }
             catch (Exception err)
             {
