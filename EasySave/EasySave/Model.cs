@@ -334,13 +334,13 @@ namespace EasySave
             string LogTimeValue = DateTime.Now.ToString() + " #" + logId;
 
             //We define the content of our xml tag
-            string LogContent = Environment.NewLine + "Save: " + SaveName + Environment.NewLine +
-                         "Source Path: " + SourcePath + Environment.NewLine +
-                         "Destination Path: " + DestinationPath + Environment.NewLine +
-                         "File: " + FileName + Environment.NewLine +
-                         "File Size: " + FileSize + "o" + Environment.NewLine +
-                         "Transfert Time: " + TransfertTime + "ms" + Environment.NewLine +
-                         "Encryption Time: " + CryptTime + "ms" + Environment.NewLine;
+            string LogContent = Environment.NewLine + "     Save: " + SaveName + Environment.NewLine +
+                         "      Source Path: " + SourcePath + Environment.NewLine +
+                         "      Destination Path: " + DestinationPath + Environment.NewLine +
+                         "      File: " + FileName + Environment.NewLine +
+                         "      File Size: " + FileSize + "o" + Environment.NewLine +
+                         "      Transfert Time: " + TransfertTime + "ms" + Environment.NewLine +
+                         "      Encryption Time: " + CryptTime + "ms" + Environment.NewLine;
 
 
             //We check if the XML file does not exist to be able to initialize it
