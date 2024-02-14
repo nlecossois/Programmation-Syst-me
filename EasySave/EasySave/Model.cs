@@ -322,7 +322,7 @@ namespace EasySave
         }
 
         //Method the writes to an xml log file
-        private void WriteXmlLog(string SaveName, string FileName, string SourcePath, string DestinationPath, long FileSize, long TransfertTime, long CryptTime)
+        private void WriteXmlLog(string SaveName, string FileName, string SourcePath, string DestinationPath, long FileSize, long TransferTime, long CryptTime)
         {
             //We get the address of the file
             string parentDirectory = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName;
@@ -339,7 +339,7 @@ namespace EasySave
                          "      Destination Path: " + DestinationPath + Environment.NewLine +
                          "      File: " + FileName + Environment.NewLine +
                          "      File Size: " + FileSize + "o" + Environment.NewLine +
-                         "      Transfert Time: " + TransfertTime + "ms" + Environment.NewLine +
+                         "      Transfer Time: " + TransferTime + "ms" + Environment.NewLine +
                          "      Encryption Time: " + CryptTime + "ms" + Environment.NewLine;
 
 
