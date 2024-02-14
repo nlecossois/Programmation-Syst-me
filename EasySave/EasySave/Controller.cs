@@ -20,8 +20,12 @@ namespace EasySave
             //Apply this language to the entire program
             if (currentLang == "FR" || currentLang == "EN") 
             {
-                //We call the run method which launches the application
-                run(appView, appModel, currentLang);
+
+                //We actually define the new language
+                appModel.setLang(currentLang);
+
+                //We call the run method which prompt user to choose log format
+                logChoice(appView, appModel);
 
             }
             else
@@ -33,15 +37,30 @@ namespace EasySave
 
         }
 
-        public void run(View appView, Model appModel, string currentLang)
+        public void logChoice(View appView, Model appModel)
         {
-            //We actually define the new language
-            appModel.setLang(currentLang);
+
+            string logFormat = appView.promptConsole(appModel.getMessage("{{ message.logFormat }}")).ToUpper();
+            if (logFormat == "JSON" || logFormat == "XML")
+            {
+                //We save the choice of the user
+                appModel.setLogFormat(logFormat);
+
+                //We call the run method which launches the application
+                run(appView, appModel);
+            } else
+            {
+                appView.sendConsole(appModel.getMessage("{{ error.invalidLogFormat }}"));
+                logChoice(appView, appModel);
+            }
+            
+        }
 
 
+        public void run(View appView, Model appModel)
+        {
             //The user is asked what they want to save
             string userPrompt = appView.promptConsole(appModel.getMessage("{{ message.promptSequence }}"));
-
 
             //Formatting user-sent data
             string formatPrompt = appModel.formatUserPrompt(userPrompt);
@@ -52,7 +71,7 @@ namespace EasySave
                 //Send error message to console
                 appView.sendConsole(appModel.getMessage(formatPrompt));
                 //We call a new run method to ask the user for a new backup sequence.
-                run(appView, appModel, currentLang);
+                run(appView, appModel);
             }
             else
             {
