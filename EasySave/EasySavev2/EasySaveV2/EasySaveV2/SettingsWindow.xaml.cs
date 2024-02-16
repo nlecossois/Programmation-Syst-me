@@ -55,6 +55,7 @@ namespace EasySaveV2
         public string AppPrintCheckJobApp { get; set; }
         public string AppPrintSaveParam { get; set; }
         public string AppPrintCancelParam { get; set; }
+        public string CurrentJobApp { get; set; }
 
 
 
@@ -112,6 +113,7 @@ namespace EasySaveV2
             SelectedLogType = LogType.SelectedItem as string;
             DialogResult = true;
             userText = inputValue;
+            viewModel.setJobApp(CurrentJobApp);
             // Cela fermera la fenêtre avec un résultat positif (true)
         }
 
@@ -133,6 +135,7 @@ namespace EasySaveV2
             logType.Add("Json");
             logType.Add("Xml");
             GetAllLanguage();
+            CurrentJobApp = viewModel.getJobApp();
             Language.SelectedItem = Languages.Contains(viewModel.lang, StringComparer.OrdinalIgnoreCase) ? viewModel.lang : "EN";
             LogType.SelectedItem = logType.Contains(viewModel.logType, StringComparer.OrdinalIgnoreCase) ? viewModel.logType : "Json";
             List<ScriptTypeItem> scriptTypeList = new List<ScriptTypeItem>

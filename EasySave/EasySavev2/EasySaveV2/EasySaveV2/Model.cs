@@ -9,6 +9,8 @@ using System.Text.Json;
 using System.Diagnostics;
 using Newtonsoft.Json.Linq;
 using System.Text.RegularExpressions;
+using System.Xml;
+using System.Threading;
 
 namespace EasySaveV2
 {
@@ -23,6 +25,14 @@ namespace EasySaveV2
         private string textOutput = "";
         private List<string> allSaveFileNames = new List<string>();
         private List<string> sourceFolderList = new List<string>();
+        private string jobApp = "";
+        private string logFormat = "JSON";
+
+        //setter for the format of the log file
+        public void setLogFormat(string format)
+        {
+            logFormat = format.ToUpper();
+        }
 
         //Method that transforms the user's request from a character string to an array.
         public string formatUserPrompt(string userPrompt)
@@ -31,14 +41,34 @@ namespace EasySaveV2
             string formatedData = "{{ error.noSave }}";
             if (userPrompt == "*")
             {
-                //Static case where we have all the backups. (*)
-                formatedData = "1, 2, 3, 4, 5";
+                //Case where we have all the backups. (*)
+
+                //We start by searching for all the backups from 1 to n.
+                int index = 1;
+                List<int> indexList = new List<int>();
+
+                //We retrieve the list of backup folders
+                while (Directory.Exists(GetParentDirectory(GetFolderPath("Source" + index), "Source" + index)))
+                {
+                    index++;
+                    indexList.Add(index - 1);
+                }
+                //If the list is empty: we return an error
+                if (indexList.Count == 0)
+                {
+                    formatedData = "{{ error.saver.noFolder }}";
+                }
+                else
+                {
+                    //We concatenate the list to return it to the next method
+                    formatedData = string.Join(", ", indexList);
+                }
             }
             else
             {
                 if (userPrompt.Length == 1)
                 {
-                    if (userPrompt == "1" || userPrompt == "2" || userPrompt == "3" || userPrompt == "4" || userPrompt == "5")
+                    if (int.TryParse(userPrompt, out int res))
                     {
                         //Case where we have a precise backup.
                         formatedData = userPrompt;
@@ -67,7 +97,7 @@ namespace EasySaveV2
                             {
                                 //We check that the format is correct
                                 string[] range = part.Split('-');
-                                if (range.Length != 2 || !int.TryParse(range[0], out int start) || !int.TryParse(range[1], out int end) || start >= end || start < 1 || end > 5)
+                                if (range.Length != 2 || !int.TryParse(range[0], out int start) || !int.TryParse(range[1], out int end) || start >= end || start < 1)
                                     //Si erreur : on renvoie l'erreur
                                     return new string[] { "{{ error.fillSyntax }}" };
                                 return Enumerable.Range(start, end - start + 1).Select(i => i.ToString());
@@ -75,7 +105,7 @@ namespace EasySaveV2
 
                             //Otherwise we try to convert it to an integer
 
-                            else if (int.TryParse(part, out int number) && number <= 5 && number >= 1)
+                            else if (int.TryParse(part, out int number) && number >= 1)
                             {
                                 //We return the corresponding character
                                 return new string[] { number.ToString() };
@@ -239,7 +269,7 @@ namespace EasySaveV2
             return totalFile;
         }
         //Method that formats log content
-        private JsonElement SerializeContent(string SaveName, string FileName, string SourcePath, string DestinationPath, long FileSize, long TransferTime, bool etat = false)
+        private JsonElement SerializeContent(string SaveName, string FileName, string SourcePath, string DestinationPath, long FileSize, long TransferTime, long CryptTime, bool etat = false)
         {
             using (var stream = new System.IO.MemoryStream())
             {
@@ -258,7 +288,7 @@ namespace EasySaveV2
                         jsonWriter.WriteString("File", FileName);
                         jsonWriter.WriteNumber("File Size", FileSize);
                         jsonWriter.WriteNumber("Transfer Time (ms)", TransferTime);
-                        jsonWriter.WriteString("Transfert State", "On");
+                        jsonWriter.WriteNumber("Encryption Time (ms)", CryptTime);
                     }
                     else
                     {
@@ -268,7 +298,15 @@ namespace EasySaveV2
                         jsonWriter.WriteNumber("File Left", fileLeft);
                         jsonWriter.WriteNumber("File Size Left To Copy", sizeLeft);
                         jsonWriter.WriteNumber("File Size To Copy", totalSize);
-                        jsonWriter.WriteString("Transfert State", "Off");
+                        if (fileLeft == 0)
+                        {
+                            jsonWriter.WriteString("Transfert State", "Off");
+                        }
+                        else
+                        {
+                            jsonWriter.WriteString("Transfert State", "On");
+                        }
+
                     }
                     //End of JSON object
                     jsonWriter.WriteEndObject();
@@ -310,6 +348,85 @@ namespace EasySaveV2
             //We write the log in the log file
             File.AppendAllText(logFileName, logContent + "," + Environment.NewLine);
         }
+
+
+        //Method the writes to an xml log file
+        private void WriteXmlLog(string SaveName, string FileName, string SourcePath, string DestinationPath, long FileSize, long TransferTime, long CryptTime)
+        {
+            //We get the address of the file
+            string parentDirectory = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName;
+            string filePath = Path.Combine(parentDirectory, $"log/logFile_{DateTime.Now:yyyy_MM_dd}.xml");
+
+            //We define the identifier of our log as the date and time plus a random number to guarantee its uniqueness
+            Random random = new Random();
+            int logId = random.Next(10000);
+            string LogTimeValue = DateTime.Now.ToString() + " #" + logId;
+
+            //We define the content of our xml tag
+            string LogContent = Environment.NewLine + "     Save: " + SaveName + Environment.NewLine +
+                         "      Source Path: " + SourcePath + Environment.NewLine +
+                         "      Destination Path: " + DestinationPath + Environment.NewLine +
+                         "      File: " + FileName + Environment.NewLine +
+                         "      File Size: " + FileSize + "o" + Environment.NewLine +
+                         "      Transfer Time: " + TransferTime + "ms" + Environment.NewLine +
+                         "      Encryption Time: " + CryptTime + "ms" + Environment.NewLine;
+
+
+            //We check if the XML file does not exist to be able to initialize it
+            if (!File.Exists(filePath))
+            {
+                //Create a new XML file
+                XmlWriterSettings settings = new XmlWriterSettings();
+                //We set the file indentation to "true" and the document encoding to UTF-8.
+                settings.Indent = true;
+                settings.Encoding = System.Text.Encoding.UTF8;
+
+
+
+                //Document creation
+                using (XmlWriter writer = XmlWriter.Create(filePath, settings))
+                {
+                    //Writing data into this new document
+                    writer.WriteStartDocument();
+                    writer.WriteStartElement("Root");
+                    writer.WriteStartElement("Element");
+
+                    writer.WriteAttributeString("LogTime", LogTimeValue);
+                    writer.WriteString(LogContent);
+
+                    writer.WriteEndElement();
+                    writer.WriteEndElement();
+                    writer.WriteEndDocument();
+
+                }
+            }
+            else
+            {
+                //If the document already exists, we write the new logs afterwards
+                //We load the existing content of the XML file into an XmlDocument
+                XmlDocument doc = new XmlDocument();
+                doc.Load(filePath);
+
+                //We select the root element
+                XmlNode root = doc.SelectSingleNode("Root");
+
+                //We create a new element with its data
+                XmlElement newElement = doc.CreateElement("Element");
+
+                newElement.SetAttribute("LogTime", LogTimeValue);
+                newElement.InnerText = LogContent;
+
+                //We add the new element to the root element
+                root.AppendChild(newElement);
+
+                //We save the document.
+                doc.Save(filePath);
+
+            }
+
+
+        }
+
         private void WriteContentState(JsonElement state)
         {
             //We retrieve the address of the log file
@@ -331,11 +448,49 @@ namespace EasySaveV2
             File.WriteAllText(stateFileName, stateContent);
         }
 
+        //Method that determines whether the business process is active or not
+        private bool IsProcessOpen()
+        {
+            Process[] currentProcess = Process.GetProcesses();
+            if (currentProcess.Any(p => p.ProcessName == jobApp))
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        //Method for recovering the business application
+        public string getCurrentJobApp()
+        {
+            return jobApp;
+        }
+
+        //Method for defining the business application
+        public void setCurrentJobApp(string currentJobApp)
+        {
+            jobApp = currentJobApp;
+        }
+
         public void addFiles(string sourcePath, string destinationPath, int index)
         {
             string[] allFiles = Directory.GetFiles(sourcePath);
             foreach (string filePath in allFiles)
             {
+                //We check that the business application is not launched
+                if (IsProcessOpen())
+                {
+                    //We notify the user (will be done via an interface later, so I left the writeline temporarily because of architecture change)
+                    Console.WriteLine(getMessage("{{ message.process.isOpen }}"));
+                    //We wait for the process to be closed
+                    while (IsProcessOpen())
+                    {
+                        //Wait 500ms before running again
+                        Thread.Sleep(500);
+                    }
+                }
                 addFile(destinationPath, filePath, sourcePath, index);
             }
         }
@@ -356,14 +511,30 @@ namespace EasySaveV2
                 //We stop the clock
                 stopwatch.Stop();
                 totalSize += fileName.Length;
-                //We format the content of the log
-                JsonElement logContent = SerializeContent("Save" + index, fileName, sourcePath, destinationPath, fileSize.Length, stopwatch.ElapsedMilliseconds);
+
+                //Simulation of crypt time for v2.0
+                long cryptTime = 0;
+
                 //We format the content of the state
-                JsonElement stateContent = SerializeContent("Save" + index, fileName, sourcePath, destinationPath, fileSize.Length, stopwatch.ElapsedMilliseconds, true);
-                //We enter it in the daily log file
-                WriteContentLog(logContent);
+                JsonElement stateContent = SerializeContent("Save" + index, fileName, sourcePath, destinationPath, fileSize.Length, stopwatch.ElapsedMilliseconds, cryptTime, true);
                 //We enter it in state file
                 WriteContentState(stateContent);
+
+
+
+                //If log format is json:
+                if (logFormat == "JSON")
+                {
+                    //We format the content of the log
+                    JsonElement logContent = SerializeContent("Save" + index, fileName, sourcePath, destinationPath, fileSize.Length, stopwatch.ElapsedMilliseconds, cryptTime);
+                    //We enter it in the daily log file
+                    WriteContentLog(logContent);
+                }
+                else if (logFormat == "XML")
+                {
+                    //In the case of the log format is xml
+                    WriteXmlLog("Save" + index, fileName, sourcePath, destinationPath, fileSize.Length, stopwatch.ElapsedMilliseconds, cryptTime);
+                }
             }
             catch (Exception err)
             {

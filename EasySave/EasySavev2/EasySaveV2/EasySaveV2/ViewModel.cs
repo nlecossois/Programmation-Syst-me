@@ -32,6 +32,16 @@ namespace EasySaveV2
             return model.getMessage(param);
         }
 
+        public string getJobApp()
+        {
+            return model.getCurrentJobApp();
+        }
+
+        public void setJobApp(string jobApp)
+        {
+            model.setCurrentJobApp(jobApp);
+        }
+
 
         public string InputText
         {
@@ -100,10 +110,11 @@ namespace EasySaveV2
             // Vous pouvez vérifier le résultat si nécessaire (par exemple, si l'utilisateur a appuyé sur OK ou Annuler)
             if (result == true)
             {
+                // Logique à exécuter si l'utilisateur a appuyé sur OK
                 selectedScriptingTypes = settingsWindow.selectedItems;
                 lang = settingsWindow.SelectedLanguage;
                 logType = settingsWindow.SelectedLogType;
-                // Logique à exécuter si l'utilisateur a appuyé sur OK
+                model.setLogFormat(logType);
                 model.setLang(lang);
                 OnPropertyChanged("AppPrinterCalc");
             }
