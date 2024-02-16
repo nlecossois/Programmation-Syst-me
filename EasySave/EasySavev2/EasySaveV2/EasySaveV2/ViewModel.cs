@@ -1,12 +1,101 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Input;
 
 namespace EasySaveV2
 {
-    class ViewModel
+    
+    public class ViewModel : INotifyPropertyChanged
     {
+        Model model = new Model();
+        public ICommand SaveWork { get; private set; }
+        public ICommand OpenSettingsCommand { get; private set; }
+        public string lang;
+        public string logType;
+        public List<string> selectedScriptingTypes = new List<string>();
+        private string _inputText;
+        private string _resultText;
+
+        public string InputText
+        {
+            get { return _inputText; }
+            set
+            {
+                if (_inputText != value)
+                {
+                    _inputText = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
+        public string ResultText
+        {
+            get { return _resultText; }
+            set
+            {
+                if (_resultText != value)
+                {
+                    _resultText = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+        public ViewModel()
+        {
+            OpenSettingsCommand = new RelayCommand(OpenSettings);
+            SaveWork = new RelayCommand(Click, CanExecute);
+        }
+
+        private bool CanExecute(object parameter)
+        {
+            // Logique pour déterminer si la commande peut être exécutée
+            return true;
+        }
+
+        private void Click(object parameter)
+        {
+
+            string formatUserPrompt = model.getMessage(model.formatUserPrompt(InputText));
+            if (formatUserPrompt.Contains("Error"))
+            {
+                ResultText = formatUserPrompt;
+            }
+            else
+            {
+                ResultText = model.getMessage(model.SaveFolder(model.StringToList(formatUserPrompt)));
+            }
+        }
+        private void OpenSettings(object parameter)
+        {
+            // Créez une instance de votre fenêtre de paramètres
+            SettingsWindow settingsWindow = new SettingsWindow(this);
+
+            // Affichez la fenêtre en mode dialogue
+            bool? result = settingsWindow.ShowDialog();
+
+            // Vous pouvez vérifier le résultat si nécessaire (par exemple, si l'utilisateur a appuyé sur OK ou Annuler)
+            if (result == true)
+            {
+                selectedScriptingTypes = settingsWindow.selectedItems;
+                lang = settingsWindow.SelectedLanguage;
+                logType = settingsWindow.SelectedLogType;
+                // Logique à exécuter si l'utilisateur a appuyé sur OK
+                model.setLang(lang);
+            }
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
     }
 }
