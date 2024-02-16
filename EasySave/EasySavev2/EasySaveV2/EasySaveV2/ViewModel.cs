@@ -72,16 +72,22 @@ namespace EasySaveV2
 
         private void Click(object parameter)
         {
-
-            string formatUserPrompt = model.getMessage(model.formatUserPrompt(InputText));
-            if (model.formatUserPrompt(InputText).Contains(" error."))
+            if(InputText == null)
             {
-                ResultText = formatUserPrompt;
-            }
-            else
+                ResultText = model.getMessage("{{ error.noSave }}");
+            } else
             {
-                ResultText = model.getMessage(model.SaveFolder(model.StringToList(formatUserPrompt)));
+                string formatUserPrompt = model.getMessage(model.formatUserPrompt(InputText));
+                if (model.formatUserPrompt(InputText).Contains(" error."))
+                {
+                    ResultText = formatUserPrompt;
+                }
+                else
+                {
+                    ResultText = model.getMessage(model.SaveFolder(model.StringToList(formatUserPrompt)));
+                }
             }
+            
         }
         private void OpenSettings(object parameter)
         {
