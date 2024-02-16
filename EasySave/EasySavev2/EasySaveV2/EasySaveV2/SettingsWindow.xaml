@@ -34,8 +34,7 @@
             </ComboBox>
             <TextBlock Text="{Binding AppPrintJobApp}" Margin="0,0,0,5"/>
             <StackPanel Orientation="Horizontal" Height="60" Width="307" HorizontalAlignment="Left">
-                <TextBox x:Name="InputTextBox" Width="230" Height="30" Margin="15,0,0,0" Text="{Binding CurrentJobApp}"/>
-                <Button Content="{Binding AppPrintCheckJobApp}" Click="GetLogiciel" Width="35" Height="30" Margin="10,0,0,0"/>
+                <TextBox x:Name="InputTextBox" Width="200" Height="30" Margin="53,0,0,0" Text="{Binding CurrentJobApp}"/>
             </StackPanel>
         </StackPanel>
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Height="49" VerticalAlignment="Bottom">

@@ -28,12 +28,6 @@ namespace EasySaveV2
         private string jobApp = "";
         private string logFormat = "JSON";
 
-        //setter for the format of the log file
-        public void setLogFormat(string format)
-        {
-            logFormat = format.ToUpper();
-        }
-
         //Method that transforms the user's request from a character string to an array.
         public string formatUserPrompt(string userPrompt)
         {
@@ -462,6 +456,21 @@ namespace EasySaveV2
             }
         }
 
+        //Méthode qui renvoie vrai ou faux si le logiciel demandé par l'utilisateur est en cours d'exécution sur son poste
+        public bool processIsLaunch(string process)
+        {
+            Process[] currentProcess = Process.GetProcesses();
+            if (currentProcess.Any(p => p.ProcessName == process))
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+
         //Method for recovering the business application
         public string getCurrentJobApp()
         {
@@ -540,6 +549,12 @@ namespace EasySaveV2
             {
                 textOutput += err.Message + Environment.NewLine;
             }
+        }
+
+        //setter for the format of the log file
+        public void setLogFormat(string format)
+        {
+            logFormat = format.ToUpper();
         }
 
         public void addFolders(string sourcePath, string destinationPath, int index)

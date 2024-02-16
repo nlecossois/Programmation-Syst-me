@@ -4,7 +4,6 @@
 	"app.printer.cryptType": "Sélectionnez le type des fichiers à crypter:",
 	"app.printer.logType": "Sélectionnez le format du fichier de journalisation:",
 	"app.printer.jobApp": "Entrez le nom du logiciel métier:",
-	"app.printer.jobAppCheck": "Vérif",
 	"app.printer.saveParam": "Enregistrer",
 	"app.printer.cancelParam": "Annuler",
 	"message.chooseLang": "Choisissez une langue. (FR/EN)",

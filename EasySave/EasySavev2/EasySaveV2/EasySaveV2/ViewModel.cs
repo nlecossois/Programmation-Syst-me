@@ -37,12 +37,6 @@ namespace EasySaveV2
             return model.getCurrentJobApp();
         }
 
-        public void setJobApp(string jobApp)
-        {
-            model.setCurrentJobApp(jobApp);
-        }
-
-
         public string InputText
         {
             get { return _inputText; }
@@ -68,6 +62,12 @@ namespace EasySaveV2
                 }
             }
         }
+
+        public bool processIsLaunch(string process)
+        {
+            return model.processIsLaunch(process);
+        }
+
         public ViewModel()
         {
             OpenSettingsCommand = new RelayCommand(OpenSettings);
@@ -115,6 +115,7 @@ namespace EasySaveV2
                 lang = settingsWindow.SelectedLanguage;
                 logType = settingsWindow.SelectedLogType;
                 model.setLogFormat(logType);
+                model.setCurrentJobApp(settingsWindow.currentJobApp);
                 model.setLang(lang);
                 OnPropertyChanged("AppPrinterCalc");
             }

@@ -25,8 +25,7 @@ namespace EasySaveV2
     {
         private ViewModel viewModel;
         public string SelectedLanguage { get; set; }
-        public string userText;
-        public string inputValue;
+        public string currentJobApp;
         private List<string> _selectedScriptingTypes;
         public string SelectedLogType { get; set; }
         public ICommand SaveCommand { get; private set; }
@@ -52,7 +51,6 @@ namespace EasySaveV2
         public string AppPrintCryptType { get; set; }
         public string AppPrintLogType { get; set; }
         public string AppPrintJobApp { get; set; }
-        public string AppPrintCheckJobApp { get; set; }
         public string AppPrintSaveParam { get; set; }
         public string AppPrintCancelParam { get; set; }
         public string CurrentJobApp { get; set; }
@@ -112,8 +110,7 @@ namespace EasySaveV2
             SelectedLanguage = Language.SelectedItem as string;
             SelectedLogType = LogType.SelectedItem as string;
             DialogResult = true;
-            userText = inputValue;
-            viewModel.setJobApp(CurrentJobApp);
+            currentJobApp = InputTextBox.Text;
             // Cela fermera la fenêtre avec un résultat positif (true)
         }
 
@@ -129,7 +126,6 @@ namespace EasySaveV2
             AppPrintCryptType = viewModel.getMessageFromParameter("{{ app.printer.cryptType }}");
             AppPrintLogType = viewModel.getMessageFromParameter("{{ app.printer.logType }}");
             AppPrintJobApp = viewModel.getMessageFromParameter("{{ app.printer.jobApp }}");
-            AppPrintCheckJobApp = viewModel.getMessageFromParameter("{{ app.printer.jobAppCheck }}");
             AppPrintSaveParam = viewModel.getMessageFromParameter("{{ app.printer.saveParam }}");
             AppPrintCancelParam = viewModel.getMessageFromParameter("{{ app.printer.cancelParam }}");
             logType.Add("Json");
@@ -201,15 +197,6 @@ namespace EasySaveV2
             DataContext = this;
         }
 
-        
-
-
-
-        private void GetLogiciel(object sender, RoutedEventArgs e)
-        {
-            // Récupérer la valeur du champ d'entrée
-            inputValue = InputTextBox.Text;
-        }
         private void GetAllLanguage()
         {
             string currentDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
