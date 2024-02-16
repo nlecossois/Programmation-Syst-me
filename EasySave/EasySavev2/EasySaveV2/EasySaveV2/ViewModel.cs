@@ -21,6 +21,18 @@ namespace EasySaveV2
         private string _inputText;
         private string _resultText;
 
+
+        public string AppPrinterCalc
+        {
+            get { return model.getMessage("{{ app.printer.calc }}"); }
+        }
+
+        public string getMessageFromParameter(string param)
+        {
+            return model.getMessage(param);
+        }
+
+
         public string InputText
         {
             get { return _inputText; }
@@ -62,7 +74,7 @@ namespace EasySaveV2
         {
 
             string formatUserPrompt = model.getMessage(model.formatUserPrompt(InputText));
-            if (formatUserPrompt.Contains("Error"))
+            if (model.formatUserPrompt(InputText).Contains(" error."))
             {
                 ResultText = formatUserPrompt;
             }
@@ -87,6 +99,7 @@ namespace EasySaveV2
                 logType = settingsWindow.SelectedLogType;
                 // Logique à exécuter si l'utilisateur a appuyé sur OK
                 model.setLang(lang);
+                OnPropertyChanged("AppPrinterCalc");
             }
         }
 

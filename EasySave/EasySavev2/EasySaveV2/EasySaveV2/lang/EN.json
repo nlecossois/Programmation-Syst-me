@@ -1,4 +1,12 @@
 ﻿{
+	"app.printer.calc": "Save",
+	"app.printer.language": "Choose a language: ",
+	"app.printer.cryptType": "Select the type of files to encrypt:",
+	"app.printer.logType": "Select the format of the log file:",
+	"app.printer.jobApp": "Enter the name of the business software:",
+	"app.printer.jobAppCheck": "Check",
+	"app.printer.saveParam": "Save",
+	"app.printer.cancelParam": "Cancel",
 	"message.chooseLang": "Choose a language. (FR/EN)",
 	"message.promptSequence": "Enter the sequence of files to be saved.",
 	"message.saver.files": "The files of Source",

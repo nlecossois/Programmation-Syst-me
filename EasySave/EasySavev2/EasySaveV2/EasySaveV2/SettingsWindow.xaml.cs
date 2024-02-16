@@ -48,8 +48,17 @@ namespace EasySaveV2
                 }
             }
         }
+        public string AppPrintLanguage { get; set; }
+        public string AppPrintCryptType { get; set; }
+        public string AppPrintLogType { get; set; }
+        public string AppPrintJobApp { get; set; }
+        public string AppPrintCheckJobApp { get; set; }
+        public string AppPrintSaveParam { get; set; }
+        public string AppPrintCancelParam { get; set; }
 
-        
+
+
+
 
         public SettingsWindow(ViewModel viewModel)
         {
@@ -114,6 +123,13 @@ namespace EasySaveV2
         // Setup of the parameters windows
         private void Setup()
         {
+            AppPrintLanguage = viewModel.getMessageFromParameter("{{ app.printer.language }}");
+            AppPrintCryptType = viewModel.getMessageFromParameter("{{ app.printer.cryptType }}");
+            AppPrintLogType = viewModel.getMessageFromParameter("{{ app.printer.logType }}");
+            AppPrintJobApp = viewModel.getMessageFromParameter("{{ app.printer.jobApp }}");
+            AppPrintCheckJobApp = viewModel.getMessageFromParameter("{{ app.printer.jobAppCheck }}");
+            AppPrintSaveParam = viewModel.getMessageFromParameter("{{ app.printer.saveParam }}");
+            AppPrintCancelParam = viewModel.getMessageFromParameter("{{ app.printer.cancelParam }}");
             logType.Add("Json");
             logType.Add("Xml");
             GetAllLanguage();
@@ -181,6 +197,11 @@ namespace EasySaveV2
             CancelCommand = new RelayCommand(CancelSettings);
             DataContext = this;
         }
+
+        
+
+
+
         private void GetLogiciel(object sender, RoutedEventArgs e)
         {
             // Récupérer la valeur du champ d'entrée
