@@ -5,8 +5,19 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:EasySaveV2"
         mc:Ignorable="d"
-        Title="EasySaveV2" Height="450" Width="800">
-    <Grid>
+        Title="EasySaveV2" Height="450" Width="426">
+    <Grid Height="434" VerticalAlignment="Center">
+        <StackPanel VerticalAlignment="Top" HorizontalAlignment="Center" Height="60" Width="426" Margin="0,10,0,0">
+            <Button Width="35" Height="35" Command="{Binding OpenSettingsCommand}" HorizontalAlignment="Right" Margin="0,10,10,0">
 
+            </Button>
+        </StackPanel>
+        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Top" Width="426" Height="332" Margin="0,75,0,0">
+            <TextBox x:Name="inputTextBox" Width="200" Margin="0,10,0,10" Text="{Binding InputText}"/>
+            <Button Content="Calculer" Width="100" Height="30" Command="{Binding SaveWork}"/>
+            <ScrollViewer Height="200" VerticalScrollBarVisibility="Auto" Margin="0,20,0,0" Width="399">
+                <TextBlock Text="{Binding ResultText}" TextWrapping="WrapWithOverflow" Width="395"/>
+            </ScrollViewer>
+        </StackPanel>
     </Grid>
 </Window>

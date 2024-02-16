@@ -23,6 +23,7 @@ namespace EasySaveV2
         public View()
         {
             InitializeComponent();
+            DataContext = new ViewModel();
         }
     }
 }

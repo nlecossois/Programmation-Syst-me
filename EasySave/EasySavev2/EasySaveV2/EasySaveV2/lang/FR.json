@@ -1,0 +1,14 @@
+﻿{
+	"message.chooseLang": "Choisissez une langue. (FR/EN)",
+	"message.promptSequence": "Entrez la séquence de fichiers à sauvegarder.",
+	"message.saver.files": "Les fichiers de la source",
+	"message.saver.copied": "ont été copiés.",
+	"message.saver.noFile": "Aucun fichier dans la source",
+	"message.saver.notFound": "introuvable, vérifiez si vos dossiers sont nommés 'Source+nombre' (ex : Source1)",
+	"message.saver.folder": "Dossier",
+	"error.chooseLang": "La langue que vous avez définie n'est pas reconnue.",
+	"error.noSave": "Erreur : Vous n'avez fourni aucune sauvegarde.",
+	"error.notFound": "Erreur : Ce nom de sauvegarde n'est pas reconnu.",
+	"error.fillSyntax": "Erreur : La syntaxe pour utiliser '-' doit contenir deux nombres compris entre 1 et 5 tel que le premier est inférieur au second.",
+	"error.separatorSyntax": "Erreur : La syntaxe pour utiliser ';' doit contenir des nombres compris entre 1 et 5."
+}
