@@ -20,8 +20,12 @@ namespace EasySave
             //Apply this language to the entire program
             if (currentLang == "FR" || currentLang == "EN") 
             {
+
+                //We actually define the new language
+                appModel.setLang(currentLang);
+
                 //We call the run method which launches the application
-                run(appView, appModel, currentLang);
+                methodChoice(appView, appModel);
 
             }
             else
@@ -33,11 +37,35 @@ namespace EasySave
 
         }
 
-        public void run(View appView, Model appModel, string currentLang)
+        //Method used to set the backup type
+        public void methodChoice(View appView, Model appModel)
         {
-            //We actually define the new language
-            appModel.setLang(currentLang);
 
+            //Ask the user for the backup type
+            string backupType = appView.promptConsole(appModel.getMessage("{{ message.backupType }}"));
+            if(backupType == "0" || backupType == "1")
+            {
+                if (backupType == "0"){
+                    appModel.setCopyMethod(false);
+                } else
+                {
+                    appModel.setCopyMethod(true);
+                }
+                
+                run(appView, appModel);
+            } else
+            {
+                appView.sendConsole(appModel.getMessage("{{ error.backupType }}"));
+                methodChoice(appView, appModel);
+            }
+
+
+            
+        }
+
+        //Method that executes copying of files
+        public void run(View appView, Model appModel)
+        {
 
             //The user is asked what they want to save
             string userPrompt = appView.promptConsole(appModel.getMessage("{{ message.promptSequence }}"));
@@ -52,7 +80,7 @@ namespace EasySave
                 //Send error message to console
                 appView.sendConsole(appModel.getMessage(formatPrompt));
                 //We call a new run method to ask the user for a new backup sequence.
-                run(appView, appModel, currentLang);
+                run(appView, appModel);
             }
             else
             {
