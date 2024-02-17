@@ -43,7 +43,8 @@ namespace EasySave
 
             //Ask the user for the backup type
             string backupType = appView.promptConsole(appModel.getMessage("{{ message.backupType }}"));
-            if(backupType == "0" || backupType == "1")
+            //We check if the type is compliant and we define it in the model
+            if (backupType == "0" || backupType == "1")
             {
                 if (backupType == "0"){
                     appModel.setCopyMethod(false);
