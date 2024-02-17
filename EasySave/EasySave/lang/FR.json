@@ -12,5 +12,9 @@
 	"error.fillSyntax": "Erreur : La syntaxe pour utiliser '-' doit contenir deux nombres compris entre 1 et 5 tel que le premier est inférieur au second.",
 	"error.separatorSyntax": "Erreur : La syntaxe pour utiliser ';' doit contenir des nombres compris entre 1 et 5.",
 	"message.logFormat": "Choisissez le format du fichier de journalisation (XML/JSON).",
-	"error.invalidLogFormat" : "Erreur : Le format de fichier de journalisation est incorrect."
+	"error.invalidLogFormat": "Erreur : Le format de fichier de journalisation est incorrect.",
+	"message.backupType": "Choisissez le type de sauvegarde. 0: Complète, 1: Différentielle.",
+	"error.backupType": "Erreur : Ce type de sauvegarde n'est pas reconnu.",
+	"error.differential.folder": "Le fichier ",
+	"error.differential.content": " n'a pas été copié car il est déjà à jour dans la sauvegarde."
 }

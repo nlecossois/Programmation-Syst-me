@@ -12,5 +12,9 @@
 	"error.fillSyntax": "Error: The syntax to use '-' must contain two numbers between 1 and 5 where the first is less than the second.",
 	"error.separatorSyntax": "Error: The syntax to use ';' must contain numbers between 1 and 5.",
 	"message.logFormat": "Choose the Logging File Format (XML/JSON).",
-	"error.invalidLogFormat" : "Error: Logging file format is incorrect."
+	"error.invalidLogFormat": "Error: Logging file format is incorrect.",
+	"message.backupType": "Choose the backup type. 0: Full, 1: Differential.",
+	"error.backupType": "Error: This backup type is not recognized.",
+	"error.differential.folder": "The file ",
+	"error.differential.content": " was not copied because it is already up to date in the backup."
 }

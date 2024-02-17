@@ -47,7 +47,7 @@ namespace EasySave
                 appModel.setLogFormat(logFormat);
 
                 //We call the run method which launches the application
-                run(appView, appModel);
+                methodChoice(appView, appModel);
             } else
             {
                 appView.sendConsole(appModel.getMessage("{{ error.invalidLogFormat }}"));
@@ -55,6 +55,35 @@ namespace EasySave
             }
             
         }
+
+
+        public void methodChoice(View appView, Model appModel)
+        {
+
+            //Ask the user for the backup type
+            string backupType = appView.promptConsole(appModel.getMessage("{{ message.backupType }}"));
+            //We check if the type is compliant and we define it in the model
+            if (backupType == "0" || backupType == "1")
+            {
+                if (backupType == "0")
+                {
+                    appModel.setCopyMethod(false);
+                }
+                else
+                {
+                    appModel.setCopyMethod(true);
+                }
+
+                run(appView, appModel);
+            }
+            else
+            {
+                appView.sendConsole(appModel.getMessage("{{ error.backupType }}"));
+                methodChoice(appView, appModel);
+            }
+
+        }
+
 
 
         public void run(View appView, Model appModel)
