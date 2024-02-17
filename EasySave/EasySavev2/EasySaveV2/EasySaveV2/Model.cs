@@ -443,24 +443,10 @@ namespace EasySaveV2
         }
 
         //Method that determines whether the business process is active or not
-        private bool IsProcessOpen()
+        public bool IsProcessOpen()
         {
             Process[] currentProcess = Process.GetProcesses();
             if (currentProcess.Any(p => p.ProcessName == jobApp))
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-        }
-
-        //Méthode qui renvoie vrai ou faux si le logiciel demandé par l'utilisateur est en cours d'exécution sur son poste
-        public bool processIsLaunch(string process)
-        {
-            Process[] currentProcess = Process.GetProcesses();
-            if (currentProcess.Any(p => p.ProcessName == process))
             {
                 return true;
             }
@@ -491,15 +477,13 @@ namespace EasySaveV2
                 //We check that the business application is not launched
                 if (IsProcessOpen())
                 {
-                    //We notify the user (will be done via an interface later, so I left the writeline temporarily because of architecture change)
-                    Console.WriteLine(getMessage("{{ message.process.isOpen }}"));
                     //We wait for the process to be closed
                     while (IsProcessOpen())
                     {
                         //Wait 500ms before running again
                         Thread.Sleep(500);
                     }
-                }
+                } 
                 addFile(destinationPath, filePath, sourcePath, index);
             }
         }

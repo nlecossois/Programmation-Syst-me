@@ -17,5 +17,6 @@
 	"error.noSave": "Erreur : Vous n'avez fourni aucune sauvegarde.",
 	"error.notFound": "Erreur : Ce nom de sauvegarde n'est pas reconnu.",
 	"error.fillSyntax": "Erreur : La syntaxe pour utiliser '-' doit contenir deux nombres compris entre 1 et 5 tel que le premier est inférieur au second.",
-	"error.separatorSyntax": "Erreur : La syntaxe pour utiliser ';' doit contenir des nombres compris entre 1 et 5."
+	"error.separatorSyntax": "Erreur : La syntaxe pour utiliser ';' doit contenir des nombres compris entre 1 et 5.",
+	"error.jobAppIsOpen": "Erreur : L'application métier est actuellement en cours d'exécution. Merci de bien vouloir la fermer avant de relancer la sauvegarde."
 }

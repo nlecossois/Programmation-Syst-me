@@ -4,7 +4,9 @@ using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 
 namespace EasySaveV2
@@ -63,10 +65,10 @@ namespace EasySaveV2
             }
         }
 
-        public bool processIsLaunch(string process)
-        {
-            return model.processIsLaunch(process);
-        }
+      
+
+
+
 
         public ViewModel()
         {
@@ -82,7 +84,7 @@ namespace EasySaveV2
 
         private void Click(object parameter)
         {
-            if(InputText == null)
+            if (InputText == null)
             {
                 ResultText = model.getMessage("{{ error.noSave }}");
             } else
@@ -94,11 +96,19 @@ namespace EasySaveV2
                 }
                 else
                 {
-                    ResultText = model.getMessage(model.SaveFolder(model.StringToList(formatUserPrompt)));
+                    if (model.IsProcessOpen()) {
+                        ResultText = model.getMessage("{{ error.jobAppIsOpen }}");
+                    } else
+                    {
+                        ResultText = model.getMessage(model.SaveFolder(model.StringToList(formatUserPrompt)));
+                    }
+                    
                 }
             }
             
         }
+
+
         private void OpenSettings(object parameter)
         {
             // Créez une instance de votre fenêtre de paramètres
