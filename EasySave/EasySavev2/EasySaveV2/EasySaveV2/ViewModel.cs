@@ -19,6 +19,7 @@ namespace EasySaveV2
         public ICommand OpenSettingsCommand { get; private set; }
         public string lang;
         public string logType;
+        public string copyType;
         public List<string> selectedScriptingTypes = new List<string>();
         private string _inputText;
         private string _resultText;
@@ -78,7 +79,7 @@ namespace EasySaveV2
 
         private bool CanExecute(object parameter)
         {
-            // Logique pour déterminer si la commande peut être exécutée
+            //Logic to determine if the command can be executed
             return true;
         }
 
@@ -111,22 +112,24 @@ namespace EasySaveV2
 
         private void OpenSettings(object parameter)
         {
-            // Créez une instance de votre fenêtre de paramètres
+            //Create an instance of your settings window
             SettingsWindow settingsWindow = new SettingsWindow(this);
 
-            // Affichez la fenêtre en mode dialogue
+            //Display the window in dialog mode
             bool? result = settingsWindow.ShowDialog();
 
-            // Vous pouvez vérifier le résultat si nécessaire (par exemple, si l'utilisateur a appuyé sur OK ou Annuler)
+            //You can check the result if necessary (for example, if the user pressed Save or Cancel)
             if (result == true)
             {
-                // Logique à exécuter si l'utilisateur a appuyé sur OK
+                //Logic to execute if user pressed save
                 selectedScriptingTypes = settingsWindow.selectedItems;
                 lang = settingsWindow.SelectedLanguage;
                 logType = settingsWindow.SelectedLogType;
+                copyType = settingsWindow.SelectedCopyType;
                 model.setLogFormat(logType);
                 model.setCurrentJobApp(settingsWindow.currentJobApp);
                 model.setLang(lang);
+                model.setCopyMethod(copyType);
                 OnPropertyChanged("AppPrinterCalc");
             }
         }

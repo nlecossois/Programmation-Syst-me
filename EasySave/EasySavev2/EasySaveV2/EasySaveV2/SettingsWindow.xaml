@@ -5,9 +5,9 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:EasySaveV2" d:DataContext="{d:DesignInstance Type=local:ViewModel}"
         mc:Ignorable="d"
-        Title="Window1" Height="587" Width="327">
+        Title="Window1" Height="637" Width="327">
     <Grid>
-        <StackPanel VerticalAlignment="Top" HorizontalAlignment="Center" Height="507" Width="306" Margin="0,10,0,0">
+        <StackPanel VerticalAlignment="Top" HorizontalAlignment="Center" Height="557" Width="306" Margin="0,10,0,0">
             <TextBlock Text="{Binding AppPrintLanguage}" Margin="0,0,0,5"/>
             <ComboBox x:Name="Language" Width="200" Height="30" ItemsSource="{Binding Languages}" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="10,10,10,10">
                 <ComboBox.ItemTemplate>
@@ -26,6 +26,14 @@
             </ListBox>
             <TextBlock Text="{Binding AppPrintLogType}" Margin="0,10,0,5"/>
             <ComboBox x:Name="LogType" Width="200" Height="30" ItemsSource="{Binding logType}" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="10,10,10,10">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding}" />
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+            <TextBlock Text="{Binding AppPrintCopyType}" Margin="0,10,0,5"/>
+            <ComboBox x:Name="CopyType" Width="200" Height="30" ItemsSource="{Binding copyType}" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="10,10,10,10">
                 <ComboBox.ItemTemplate>
                     <DataTemplate>
                         <TextBlock Text="{Binding}" />

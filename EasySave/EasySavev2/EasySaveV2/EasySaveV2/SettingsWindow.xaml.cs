@@ -18,9 +18,6 @@ using System.Windows.Media.Imaging;
 
 namespace EasySaveV2
 {
-    /// <summary>
-    /// Logique d'interaction pour Window1.xaml
-    /// </summary>
     public partial class SettingsWindow : Window
     {
         private ViewModel viewModel;
@@ -28,11 +25,13 @@ namespace EasySaveV2
         public string currentJobApp;
         private List<string> _selectedScriptingTypes;
         public string SelectedLogType { get; set; }
+        public string SelectedCopyType { get; set; }
         public ICommand SaveCommand { get; private set; }
         public ICommand CancelCommand { get; private set; }
 
         public List<string> Languages { get; set; }
         public List<string> logType { get; set; }
+        public List<string> copyType { get; set; }
         public List<string> selectedItems { get; set; }
         private ObservableCollection<string> scriptingType;
         public ObservableCollection<string> ScriptType
@@ -53,6 +52,8 @@ namespace EasySaveV2
         public string AppPrintJobApp { get; set; }
         public string AppPrintSaveParam { get; set; }
         public string AppPrintCancelParam { get; set; }
+
+        public string AppPrintCopyType { get; set; }
         public string CurrentJobApp { get; set; }
 
 
@@ -64,6 +65,7 @@ namespace EasySaveV2
             this.viewModel = viewModel;
             Languages = new List<string>();
             logType = new List<string>();
+            copyType = new List<string>();
             selectedItems = new List<string>();
             
 
@@ -73,19 +75,19 @@ namespace EasySaveV2
         }
         private void CheckBox_Checked(object sender, RoutedEventArgs e)
         {
-            // Code à exécuter lorsque la case à cocher est cochée
+            //Code to run when checkbox is checked
             UpdateSelection();
         }
 
         private void CheckBox_Unchecked(object sender, RoutedEventArgs e)
         {
-            // Code à exécuter lorsque la case à cocher est décochée
+            //Code to run when checkbox is unchecked
             UpdateSelection();
         }
 
         private void UpdateSelection()
         {
-            // Mettez à jour la sélection manuellement
+            //Update the selection manually
             ScriptingType.SelectedItems.Clear();
             selectedItems.Clear();
             foreach (ScriptTypeItem item in ScriptingType.Items)
@@ -96,11 +98,10 @@ namespace EasySaveV2
                 }
             }
 
-            // Accédez aux éléments sélectionnés
+            //Access to selected items
             foreach (ScriptTypeItem selectedItem in ScriptingType.SelectedItems)
             {
                 selectedItems.Add(selectedItem.ScriptTypeName);
-                // Votre code ici
             }
         }
 
@@ -109,15 +110,16 @@ namespace EasySaveV2
         {
             SelectedLanguage = Language.SelectedItem as string;
             SelectedLogType = LogType.SelectedItem as string;
+            SelectedCopyType = CopyType.SelectedItem as string;
             DialogResult = true;
             currentJobApp = InputTextBox.Text;
-            // Cela fermera la fenêtre avec un résultat positif (true)
+            //This will close the window with a positive result (true).
         }
 
         private void CancelSettings(object parameter)
         {
-            // Logique pour annuler les modifications
-            DialogResult = false; // Cela fermera la fenêtre avec un résultat négatif (false)
+            //Logic to undo changes
+            DialogResult = false; //This will close the window with a negative result (false).
         }
         // Setup of the parameters windows
         private void Setup()
@@ -128,12 +130,16 @@ namespace EasySaveV2
             AppPrintJobApp = viewModel.getMessageFromParameter("{{ app.printer.jobApp }}");
             AppPrintSaveParam = viewModel.getMessageFromParameter("{{ app.printer.saveParam }}");
             AppPrintCancelParam = viewModel.getMessageFromParameter("{{ app.printer.cancelParam }}");
+            AppPrintCopyType = viewModel.getMessageFromParameter("{{ app.printer.copyType }}");
             logType.Add("Json");
             logType.Add("Xml");
+            copyType.Add(viewModel.getMessageFromParameter("{{ printer.copyType.complete }}"));
+            copyType.Add(viewModel.getMessageFromParameter("{{ printer.copyType.differential }}"));
             GetAllLanguage();
             CurrentJobApp = viewModel.getJobApp();
             Language.SelectedItem = Languages.Contains(viewModel.lang, StringComparer.OrdinalIgnoreCase) ? viewModel.lang : "EN";
             LogType.SelectedItem = logType.Contains(viewModel.logType, StringComparer.OrdinalIgnoreCase) ? viewModel.logType : "Json";
+            CopyType.SelectedItem = copyType.Contains(viewModel.copyType, StringComparer.OrdinalIgnoreCase) ? viewModel.copyType : viewModel.getMessageFromParameter("{{ printer.copyType.complete }}");
             List<ScriptTypeItem> scriptTypeList = new List<ScriptTypeItem>
             {
                 new ScriptTypeItem { ScriptTypeName = "apk", IsSelected = false },
@@ -184,13 +190,13 @@ namespace EasySaveV2
             };
             foreach (ScriptTypeItem item in scriptTypeList)
             {
-                // Vérifiez si l'élément doit être sélectionné par défaut
+                //Check if the item should be selected by default
                 if (viewModel.selectedScriptingTypes.Contains(item.ScriptTypeName, StringComparer.OrdinalIgnoreCase))
                 {
                     item.IsSelected = true;
                 }
             }
-            // Initialiser la liste avec les objets ScriptingTypeItem
+            //Initialize the list with ScriptingTypeItem objects
             ScriptingType.ItemsSource = scriptTypeList;
             SaveCommand = new RelayCommand(SaveSettings);
             CancelCommand = new RelayCommand(CancelSettings);
@@ -201,10 +207,10 @@ namespace EasySaveV2
         {
             string currentDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
 
-            // Remontez plusieurs niveaux pour obtenir le dossier du projet
+            //Go back several levels to get the project folder
             string projectDirectory = Directory.GetParent(currentDirectory).Parent.Parent.FullName;
 
-            // Combinez le chemin avec le dossier "lang"
+            //Combine the path with the "lang" folder
             string langFolderPath = Path.Combine(projectDirectory, "lang");
             foreach (string lang in Directory.GetFiles(langFolderPath))
             {

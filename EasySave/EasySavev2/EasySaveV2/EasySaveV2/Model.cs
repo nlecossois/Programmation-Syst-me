@@ -28,6 +28,21 @@ namespace EasySaveV2
         private string jobApp = "";
         private string logFormat = "JSON";
 
+        private bool differential = false;
+
+        //Method for defining whether the backup type is differential or full
+        public void setCopyMethod(string method)
+        {
+            if (method.Contains("Compl"))
+            {
+                differential = false;
+            } else
+            {
+                differential = true;
+            }
+            
+        }
+
         //Method that transforms the user's request from a character string to an array.
         public string formatUserPrompt(string userPrompt)
         {
@@ -496,38 +511,65 @@ namespace EasySaveV2
             Stopwatch stopwatch = new Stopwatch();
             try
             {
-                //We start recording the copy time
-                stopwatch.Start();
-                //We copy the file
-                File.Copy(filePath, fileDestinationPath, true);
-                allSaveFileNames.Add(fileName);
-                //We stop the clock
-                stopwatch.Stop();
-                totalSize += fileName.Length;
-
-                //Simulation of crypt time for v2.0
-                long cryptTime = 0;
-
-                //We format the content of the state
-                JsonElement stateContent = SerializeContent("Save" + index, fileName, sourcePath, destinationPath, fileSize.Length, stopwatch.ElapsedMilliseconds, cryptTime, true);
-                //We enter it in state file
-                WriteContentState(stateContent);
-
-
-
-                //If log format is json:
-                if (logFormat == "JSON")
+                bool copy = false;
+                //We control the type of backup
+                if (differential == false)
                 {
-                    //We format the content of the log
-                    JsonElement logContent = SerializeContent("Save" + index, fileName, sourcePath, destinationPath, fileSize.Length, stopwatch.ElapsedMilliseconds, cryptTime);
-                    //We enter it in the daily log file
-                    WriteContentLog(logContent);
+                    //If the backup is complete: we save the file whatever happens
+                    allSaveFileNames.Add(fileName);
+                    copy = true;
                 }
-                else if (logFormat == "XML")
+                else
                 {
-                    //In the case of the log format is xml
-                    WriteXmlLog("Save" + index, fileName, sourcePath, destinationPath, fileSize.Length, stopwatch.ElapsedMilliseconds, cryptTime);
+                    //If the backup is differential: we check whether it is necessary to copy the file
+                    //We check if the destination exists
+                    if (File.Exists(fileDestinationPath))
+                    {
+                        //We warn the user that the file has not been copied
+                        textOutput += "{{ error.differential.folder }}" + fileName + "{{ error.differential.content }}" + Environment.NewLine;
+                    }
+                    else
+                    {
+                        //If the source does not exist: We copy the file
+                        allSaveFileNames.Add(fileName);
+                        copy = true;
+                    }
+
                 }
+                if (copy == true)
+                {
+                    //We start recording the copy time
+                    stopwatch.Start();
+                    //We copy the file
+                    File.Copy(filePath, fileDestinationPath, true);
+                    allSaveFileNames.Add(fileName);
+                    //We stop the clock
+                    stopwatch.Stop();
+                    totalSize += fileName.Length;
+
+                    //Simulation of crypt time for v2.0
+                    long cryptTime = 0;
+
+                    //We format the content of the state
+                    JsonElement stateContent = SerializeContent("Save" + index, fileName, sourcePath, destinationPath, fileSize.Length, stopwatch.ElapsedMilliseconds, cryptTime, true);
+                    //We enter it in state file
+                    WriteContentState(stateContent);
+
+                    //If log format is json:
+                    if (logFormat == "JSON")
+                    {
+                        //We format the content of the log
+                        JsonElement logContent = SerializeContent("Save" + index, fileName, sourcePath, destinationPath, fileSize.Length, stopwatch.ElapsedMilliseconds, cryptTime);
+                        //We enter it in the daily log file
+                        WriteContentLog(logContent);
+                    }
+                    else if (logFormat == "XML")
+                    {
+                        //In the case of the log format is xml
+                        WriteXmlLog("Save" + index, fileName, sourcePath, destinationPath, fileSize.Length, stopwatch.ElapsedMilliseconds, cryptTime);
+                    }
+                }
+
             }
             catch (Exception err)
             {
