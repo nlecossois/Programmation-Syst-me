@@ -130,6 +130,7 @@ namespace EasySaveV2
                 model.setCurrentJobApp(settingsWindow.currentJobApp);
                 model.setLang(lang);
                 model.setCopyMethod(copyType);
+                model.setEncryptFileType(selectedScriptingTypes);
                 OnPropertyChanged("AppPrinterCalc");
             }
         }

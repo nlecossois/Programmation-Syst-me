@@ -17,7 +17,6 @@ namespace EasySaveV2
     class Model
     {
         private string currentLanguage = "EN";
-
         private long totalSize = 0;
         private int totalFile = 0;
         private long sizeLeft = 0;
@@ -27,8 +26,14 @@ namespace EasySaveV2
         private List<string> sourceFolderList = new List<string>();
         private string jobApp = "";
         private string logFormat = "JSON";
-
         private bool differential = false;
+        private List<string> selectedCryptFileType = new List<string>();
+
+        //Method used to define file types that will be encrypted
+        public void setEncryptFileType(List<string> extensionsList)
+        {
+            selectedCryptFileType = extensionsList;
+        }
 
         //Method for defining whether the backup type is differential or full
         public void setCopyMethod(string method)
@@ -278,7 +283,7 @@ namespace EasySaveV2
             return totalFile;
         }
         //Method that formats log content
-        private JsonElement SerializeContent(string SaveName, string FileName, string SourcePath, string DestinationPath, long FileSize, long TransferTime, long CryptTime, bool etat = false)
+        private JsonElement SerializeContent(string SaveName, string FileName, string SourcePath, string DestinationPath, long FileSize, long TransferTime, string CryptTime, bool etat = false)
         {
             using (var stream = new System.IO.MemoryStream())
             {
@@ -297,7 +302,7 @@ namespace EasySaveV2
                         jsonWriter.WriteString("File", FileName);
                         jsonWriter.WriteNumber("File Size", FileSize);
                         jsonWriter.WriteNumber("Transfer Time (ms)", TransferTime);
-                        jsonWriter.WriteNumber("Encryption Time (ms)", CryptTime);
+                        jsonWriter.WriteString("Encryption", CryptTime);
                     }
                     else
                     {
@@ -360,7 +365,7 @@ namespace EasySaveV2
 
 
         //Method the writes to an xml log file
-        private void WriteXmlLog(string SaveName, string FileName, string SourcePath, string DestinationPath, long FileSize, long TransferTime, long CryptTime)
+        private void WriteXmlLog(string SaveName, string FileName, string SourcePath, string DestinationPath, long FileSize, long TransferTime, string CryptTime)
         {
             //We get the address of the file
             string parentDirectory = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName;
@@ -378,7 +383,7 @@ namespace EasySaveV2
                          "      File: " + FileName + Environment.NewLine +
                          "      File Size: " + FileSize + "o" + Environment.NewLine +
                          "      Transfer Time: " + TransferTime + "ms" + Environment.NewLine +
-                         "      Encryption Time: " + CryptTime + "ms" + Environment.NewLine;
+                         "      Encryption: " + CryptTime + Environment.NewLine;
 
 
             //We check if the XML file does not exist to be able to initialize it
@@ -509,6 +514,7 @@ namespace EasySaveV2
             string fileName = Path.GetFileName(filePath);
             string fileDestinationPath = Path.Combine(destinationPath, fileName);
             Stopwatch stopwatch = new Stopwatch();
+            Stopwatch cryptTime = new Stopwatch();
             try
             {
                 bool copy = false;
@@ -545,13 +551,55 @@ namespace EasySaveV2
                     allSaveFileNames.Add(fileName);
                     //We stop the clock
                     stopwatch.Stop();
+                    //We save the size of the file
                     totalSize += fileName.Length;
 
-                    //Simulation of crypt time for v2.0
-                    long cryptTime = 0;
+
+
+
+                    //We initialize the variable which contains the file encryption information
+                    string encryptTime;
+                    //We check if the file must be encrypted in relation to its extension
+                    //We start by determining the extension of our file
+                    string fileExtension = Path.GetExtension(fileName);
+                    //We remove the point of the extension
+                    fileExtension = fileExtension.TrimStart('.');
+
+                    //We check if our list containing all the selected extensions contains the extension of the current file
+                    if (selectedCryptFileType.Contains(fileExtension))
+                    {
+                        //If the file extension matches and it must be encrypted:
+                        //Recovering the parent folder
+                        string parentDirectory = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName;
+                        //Recovery of the CryptoSoft executable
+                        string cryptoSoftPath = Path.Combine(parentDirectory, $"CryptoSoft/CryptoSoft.exe");
+                        if (!File.Exists(cryptoSoftPath))
+                        {
+                            //If the CryptoSoft executable is not found.
+                            encryptTime = getMessage("{{ error.encrypt }}");
+                        } else
+                        {
+                            //Encryptage du fichier
+                            cryptTime.Start();
+                            ProcessStartInfo startInfo = new ProcessStartInfo();
+                            startInfo.FileName = cryptoSoftPath;
+                            startInfo.Arguments = $"\"{fileDestinationPath}\"";
+                            Process.Start(startInfo);
+                            cryptTime.Stop();
+                            textOutput += "{{ message.encrypt.file }}" + fileName + "{{ message.encrypt.success }}" + Environment.NewLine;
+
+                            encryptTime = cryptTime.ElapsedMilliseconds + " ms";
+                        }
+                            
+                    } else
+                    {
+                        //Otherwise: We insert in the logs that the file does not need to be encrypted
+                        encryptTime = "0";
+                    }
+
 
                     //We format the content of the state
-                    JsonElement stateContent = SerializeContent("Save" + index, fileName, sourcePath, destinationPath, fileSize.Length, stopwatch.ElapsedMilliseconds, cryptTime, true);
+                    JsonElement stateContent = SerializeContent("Save" + index, fileName, sourcePath, destinationPath, fileSize.Length, stopwatch.ElapsedMilliseconds, encryptTime, true);
                     //We enter it in state file
                     WriteContentState(stateContent);
 
@@ -559,14 +607,14 @@ namespace EasySaveV2
                     if (logFormat == "JSON")
                     {
                         //We format the content of the log
-                        JsonElement logContent = SerializeContent("Save" + index, fileName, sourcePath, destinationPath, fileSize.Length, stopwatch.ElapsedMilliseconds, cryptTime);
+                        JsonElement logContent = SerializeContent("Save" + index, fileName, sourcePath, destinationPath, fileSize.Length, stopwatch.ElapsedMilliseconds, encryptTime);
                         //We enter it in the daily log file
                         WriteContentLog(logContent);
                     }
                     else if (logFormat == "XML")
                     {
                         //In the case of the log format is xml
-                        WriteXmlLog("Save" + index, fileName, sourcePath, destinationPath, fileSize.Length, stopwatch.ElapsedMilliseconds, cryptTime);
+                        WriteXmlLog("Save" + index, fileName, sourcePath, destinationPath, fileSize.Length, stopwatch.ElapsedMilliseconds, encryptTime);
                     }
                 }
 
