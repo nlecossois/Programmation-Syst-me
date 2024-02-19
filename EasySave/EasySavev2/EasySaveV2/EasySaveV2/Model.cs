@@ -522,7 +522,6 @@ namespace EasySaveV2
                 if (differential == false)
                 {
                     //If the backup is complete: we save the file whatever happens
-                    allSaveFileNames.Add(fileName);
                     copy = true;
                 }
                 else
@@ -537,7 +536,6 @@ namespace EasySaveV2
                     else
                     {
                         //If the source does not exist: We copy the file
-                        allSaveFileNames.Add(fileName);
                         copy = true;
                     }
 
