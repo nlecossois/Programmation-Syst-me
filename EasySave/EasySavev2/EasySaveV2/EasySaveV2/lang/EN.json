@@ -26,5 +26,6 @@
 	"error.differential.content": " was not copied because it is already up to date in the backup.",
 	"error.encrypt": "The Cryptosoft.exe executable was not found. Encryption did not take place.",
 	"message.encrypt.file": "The file ",
-	"message.encrypt.success": " has been encrypted by CryptoSoft."
+	"message.encrypt.success": " has been encrypted by CryptoSoft.",
+	"error.saver.noFolder": "Unable to find your source folders."
 }
