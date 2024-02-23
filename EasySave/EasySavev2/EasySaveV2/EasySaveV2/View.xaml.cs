@@ -26,7 +26,6 @@ namespace EasySaveV2
             //Here we carry out the control to make the application single-instance using a mutex
             Mutex mutex = new Mutex(true, "{F48SDQF6f-sd8g-54fs-48p2-JH2IKK6A8}");
 
-
             //If the mutex is already taken this means that another instance of the application is running on this device
             if (!mutex.WaitOne(TimeSpan.Zero, true))
             {
@@ -49,6 +48,9 @@ namespace EasySaveV2
             {
                 mutex.ReleaseMutex();
             }
+
+            
         }
+
     }
 }

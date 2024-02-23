@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 
@@ -23,6 +24,7 @@ namespace EasySaveV2
         public List<string> selectedScriptingTypes = new List<string>();
         private string _inputText;
         private string _resultText;
+        private bool _threadGetMessage = false;
 
 
         public string AppPrinterCalc
@@ -97,13 +99,68 @@ namespace EasySaveV2
                 }
                 else
                 {
-                    if (model.IsProcessOpen()) {
-                        ResultText = model.getMessage("{{ error.jobAppIsOpen }}");
+                    //Récupération des sauvegardes à exécuter et du nombre total de sauvegarde
+                    string finalUserPrompt = model.GetSaveData(formatUserPrompt);
+                    if (finalUserPrompt.Contains("error"))
+                    {
+                        ResultText = model.getMessage(finalUserPrompt);
                     } else
                     {
-                        ResultText = model.getMessage(model.SaveFolder(model.StringToList(formatUserPrompt)));
+                        //A partir d'ici, ce morceau de code correspond à la trame du programme
+                        //On commence par extraire les informations en un tableau d'entier et un entier
+                        int amountOfLines = model.extractUserPrompt(finalUserPrompt, 1);
+                        List<int> listOfSaves = model.extractUserPrompt(finalUserPrompt);
+                        //On réalise l'action pour initialiser et charger les barres et renvoyer un ResultText vide.
+
+                        ResultText = "";
+                        //- LoadProgressBar(amountOfLines);
+
+                        //On active le Thread qui attend les commandes en provenances du model
+                        Thread messageGetter = new Thread(new ParameterizedThreadStart(listenDataFromModel));
+                        messageGetter.Start("messageGetter");
+                        _threadGetMessage = true;
+
+                        //On appel la méthode du model qui va se charger de threader chaque sauvegarde et de gérer la liste d'attente
+                        model.simulate();
+
+
+                        //A la fin du programme, on désactive les threads:
+                        //On laisse une petite latence pour permettre la fin des exécution
+                        Thread.Sleep(1000);
+                        _threadGetMessage = false;
                     }
+                }
+            }
+        }
+
+        //A la fermeture de l'application, par sécurité, on kill tous les threads en cours
+        void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            _threadGetMessage = false;
+        }
+
+        //Méthode qui attend de recevoir une instruction puis qui l'affiche sous forme de messageBox
+        private void listenDataFromModel(Object messageGetter)
+        {
+    
+            while (_threadGetMessage)
+            {
+                if (GlobalVariables.ModelToViewModel.Count != 0)
+                {
+                    //Récupération de la première commande
+                    string cmd = GlobalVariables.ModelToViewModel[0];
+                    //On retire cette commande de la liste
+                    GlobalVariables.ModelToViewModel.RemoveAt(0);
+
+                    //Action à réaliser en récéption de la commande
+                    MessageBoxResult displayer = MessageBox.Show(cmd, "Return from Model", MessageBoxButton.OK, MessageBoxImage.Information);
+
+                    //C'est ici que l'on appelera la mise a jour de la barre, des boutons etc en fonction de la commande exécutée
                     
+                }
+                else
+                {
+                    Thread.Sleep(500);
                 }
             }
             

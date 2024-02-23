@@ -14,6 +14,12 @@ using System.Threading;
 
 namespace EasySaveV2
 {
+
+    public static class GlobalVariables
+    {
+        public static List<string> ModelToViewModel = new List<string>();
+    }
+
     class Model
     {
         private string currentLanguage = "EN";
@@ -21,6 +27,7 @@ namespace EasySaveV2
         private int totalFile = 0;
         private long sizeLeft = 0;
         private int fileLeft = 0;
+        private int loopStar = 150;
         private string textOutput = "";
         private List<string> allSaveFileNames = new List<string>();
         private List<string> sourceFolderList = new List<string>();
@@ -28,6 +35,28 @@ namespace EasySaveV2
         private string logFormat = "JSON";
         private bool differential = false;
         private List<string> selectedCryptFileType = new List<string>();
+
+        //Méthode qui diffuse les données vers l'observable du ViewModel
+        public void BroadcastDataToVM(string data)
+        {
+            GlobalVariables.ModelToViewModel.Add(data);  
+        }
+
+
+        //Méthodes de test (les 2 qui suivent)
+        public void simulate()
+        {
+            Thread t1 = new Thread(new ParameterizedThreadStart(test));
+            t1.Start("t1");
+            Thread t2 = new Thread(new ParameterizedThreadStart(test));
+            t2.Start("t2");
+
+        }
+        public void test(Object t)
+        {
+            BroadcastDataToVM("Hello bonsoiiiiiiiiiiiiiiiiiiiiiiiiir ! C'est " + t);
+        }
+
 
         //Method used to define file types that will be encrypted
         public void setEncryptFileType(List<string> extensionsList)
@@ -57,17 +86,15 @@ namespace EasySaveV2
             {
                 //Case where we have all the backups. (*)
 
-                //We start by searching for all the backups from 1 to n.
-                int index = 1;
                 List<int> indexList = new List<int>();
-
-                //We retrieve the list of backup folders
-                while (Directory.Exists(GetParentDirectory(GetFolderPath("Source" + index), "Source" + index)))
+                //We search for all the backups from 1 to loopStar value.
+                for (int i = 1; i < loopStar; i++)
                 {
-                    index++;
-                    indexList.Add(index - 1);
+                    if (Directory.Exists(GetParentDirectory(GetFolderPath("Source" + i), "Source" + i)))
+                    {
+                        indexList.Add(i);
+                    }
                 }
-                //If the list is empty: we return an error
                 if (indexList.Count == 0)
                 {
                     formatedData = "{{ error.saver.noFolder }}";
@@ -148,6 +175,98 @@ namespace EasySaveV2
             //We return the final result (error or accepted result)
             return formatedData;
         }
+
+        //Méthode utilisée pour contrôler la liste des sauvegardes à exécuter et le nombre de lignes à afficher.
+        public string GetSaveData(string formatUserPrompt)
+        {
+            //On transforme en liste
+            List<int> promptList = StringToList(formatUserPrompt);
+            //On vérifie qu'il n'y a pas eu de duplication de valeurs dans le tableau
+            HashSet<int> unitPromptList = new HashSet<int>(promptList);
+            promptList = new List<int>(unitPromptList);
+            //On trie le tout par ordre croissant
+            promptList.Sort();
+            //On défini la liste de résultat
+            List<int> finalPromptList = new List<int>();
+            //On contrôle si le dossier existe bel et bien
+            foreach (int i in promptList)
+            {
+                //On récupère le chemin du dossier
+                string sourcePath = GetParentDirectory(GetFolderPath("Source" + i), "Source" + i);
+                //On récupère le nombre total de fichiers dans la source
+                int totalFiles = getAllFilesInSave(sourcePath);
+                //On contrôle si il existe et que le dossier contient bien des fichiers
+                if (sourcePath != null && totalFiles != 0)
+                {
+                    //Si il est nul, on retire cet element de la liste
+                    finalPromptList.Add(i);
+                }
+                //On contrôle si le dossier parent contient des fichiers
+            }
+            //On compte le nombre des lignes à afficher
+            int lines = finalPromptList.Count();
+            if(lines > 0) {
+                //On formate le résultat final
+                string allSaves = string.Join(",", finalPromptList);
+                formatUserPrompt = allSaves + "-" + lines;
+                
+            } else
+            {
+                //Si il n'y a pas de fichiers : erreur.
+                formatUserPrompt = "{{ error.noSave }}";
+            }
+            return formatUserPrompt;
+        }
+
+        //Méthode utilisée pour récuperer le nombre de fichiers dans un dossier de sauvegarde.
+        private int getAllFilesInSave(string sourcePath)
+        {
+            try
+            {
+                string[] fileInFolder = Directory.GetFiles(sourcePath);
+                totalFile = fileInFolder.Length;
+                foreach (string file in fileInFolder)
+                {
+                    FileInfo fileSize = new FileInfo(file);
+                    totalSize = fileSize.Length;
+                }
+
+                // Recursively count files in subfolders
+                string[] subfolders = Directory.GetDirectories(sourcePath);
+                foreach (string subfolder in subfolders)
+                {
+                    getAllFileInfo(subfolder);
+                }
+            }
+            catch (Exception ex)
+            {
+                totalFile = 0;
+            }
+            return totalFile;
+        }
+
+        //Méthode qui renvoie la liste des sauvegardes à exécuter
+        public List<int> extractUserPrompt(string data)
+        {
+            string[] parts = data.Split('-');
+            string[] values = parts[0].Split(",");
+            List<int> result = new List<int>();
+            //On ajoute les éléments dans la liste
+            foreach (string val in values)
+            {
+                result.Add(int.Parse(val));
+            }
+            return result; 
+        }
+
+        //Surcharge de la méthode ci-dessus qui renvoie le nombre de lignes à afficher
+        public int extractUserPrompt(string data, int dataType)
+        {
+            string[] parts = data.Split('-');
+            return int.Parse(parts[1]);
+        }
+
+
 
         //Method which transforms the received character string into an array.
         //This function does not present any error cases because here we are sure that the string only contains integers.
