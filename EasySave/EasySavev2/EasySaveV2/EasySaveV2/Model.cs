@@ -17,7 +17,60 @@ namespace EasySaveV2
 
     public static class GlobalVariables
     {
-        public static List<string> ModelToViewModel = new List<string>();
+        public static List<string> dataTransfert = new List<string>();
+        public static int saveThreadProcess = 0;
+        public static Dictionary<int, Save> currentSaveProcess = new Dictionary<int, Save>();
+    }
+
+    public class Save
+    {
+        private int saveIndex;
+        private bool isBreak;
+        private bool run;
+        //Constructeur qui initialise l'index et appelle le démarrage de la sauvegarde
+        public Save(int index)
+        {
+            this.saveIndex = index;
+            this.isBreak = false;
+            this.run = true;
+            //Ajout de l'objet à la liste des sauvegardes en cours
+            GlobalVariables.currentSaveProcess.Add(saveIndex, this);
+            this.StartSave();
+        }
+
+
+        //Méthode qui gère la sauvegarde d'un dossier source
+        private void StartSave()
+        {
+            //Actions de sauvegardes à réaliser
+            DiffuseData("Sauvegarde " + this.saveIndex + " : En cours !");
+            Thread.Sleep(3000);
+        }
+
+        //Réalisation d'actions sur la sauvegardes
+        public static void SaveInteract(int index, string action)
+        {
+            //La méthode ne réalisera une action que si la sauvegarde est bien en cours
+            if (GlobalVariables.currentSaveProcess.TryGetValue(index, out Save currentSave))
+            {
+                if(action == "break")
+                {
+                    currentSave.isBreak = true;
+                } else if (action == "unbreak")
+                {
+                    currentSave.isBreak = false;
+                } else if (action == "kill")
+                {
+                    currentSave.run = false;
+                }
+            }
+        }
+
+        //Méthode qui envoie des données vers le model
+        private void DiffuseData(string data)
+        {
+            GlobalVariables.dataTransfert.Add(data);
+        }
     }
 
     class Model
@@ -35,28 +88,44 @@ namespace EasySaveV2
         private string logFormat = "JSON";
         private bool differential = false;
         private List<string> selectedCryptFileType = new List<string>();
+        private int maxSameTimeSaves = 2;
+        private delegate void DELG(object state);
+        private static System.Threading.Semaphore semaphore;
 
-        //Méthode qui diffuse les données vers l'observable du ViewModel
-        public void BroadcastDataToVM(string data)
+        //Méthode qui permet de gérer une liste d'attente entre toutes les sauvegardes qui doivent être créers.
+        //Actuallement le nombre d'instance simultannée est défini à 2 en dur plus haut mais à terme sera paramétrable par l'utilisateur.
+        public void SemaphoreWaitList(List<int> listOfSaves)
         {
-            GlobalVariables.ModelToViewModel.Add(data);  
+            //Déclaration du sémaphore
+            semaphore = new System.Threading.Semaphore(maxSameTimeSaves, maxSameTimeSaves);
+            DELG waitList = (state) =>
+            {
+                GlobalVariables.saveThreadProcess++;
+                semaphore.WaitOne();
+                int saveIndex = (int)state;
+                //Lancement de la sauvegarde en cours
+                Save save = new Save(saveIndex);
+                //On retire l'objet de notre liste d'objet en cours d'exécution
+                GlobalVariables.currentSaveProcess.Remove(saveIndex);
+                //Libération d'une place dans la liste d'attente
+                semaphore.Release();
+                GlobalVariables.saveThreadProcess--;
+            };
+            //Pour chaque sauvegarde
+            foreach (int index in listOfSaves)
+            {
+                //Déclaration d'un nouveau thread
+                System.Threading.Thread t = new System.Threading.Thread(waitList.Invoke);
+                //Démarage du thread
+                t.Start(((object)(index)));
+            }
         }
 
-
-        //Méthodes de test (les 2 qui suivent)
-        public void simulate()
+        //Méthode permettant de réaliser une action sur une sauvegarde
+        public void actionOnSave(int index, string action)
         {
-            Thread t1 = new Thread(new ParameterizedThreadStart(test));
-            t1.Start("t1");
-            Thread t2 = new Thread(new ParameterizedThreadStart(test));
-            t2.Start("t2");
-
+            Save.SaveInteract(index, action);
         }
-        public void test(Object t)
-        {
-            BroadcastDataToVM("Hello bonsoiiiiiiiiiiiiiiiiiiiiiiiiir ! C'est " + t);
-        }
-
 
         //Method used to define file types that will be encrypted
         public void setEncryptFileType(List<string> extensionsList)
