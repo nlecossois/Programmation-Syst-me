@@ -24,6 +24,7 @@ namespace EasySaveV2
         public List<string> selectedScriptingTypes = new List<string>();
         private string _inputText;
         private string _resultText;
+        private bool _processed = false;
 
 
         public string AppPrinterCalc
@@ -81,7 +82,14 @@ namespace EasySaveV2
         private bool CanExecute(object parameter)
         {
             //Logic to determine if the command can be executed
-            return true;
+            if(GlobalVariables.saveThreadProcess == 0 && _processed == false)
+            {
+                return true;
+            } else
+            {
+                return false;
+            }
+            
         }
 
         private void Click(object parameter)
@@ -105,6 +113,7 @@ namespace EasySaveV2
                         ResultText = model.getMessage(finalUserPrompt);
                     } else
                     {
+                        _processed = true;
                         //A partir d'ici, ce morceau de code correspond à la trame du programme
                         //On commence par extraire les informations en un tableau d'entier et un entier
                         int amountOfSaves = model.extractUserPrompt(finalUserPrompt, 1);
@@ -120,8 +129,6 @@ namespace EasySaveV2
                         //On active le Thread qui attend les commandes en provenances du model
                         Thread messageGetter = new Thread(new ParameterizedThreadStart(listenData));
                         messageGetter.Start("messageGetter");
-
-                        
                     }
                 }
             }

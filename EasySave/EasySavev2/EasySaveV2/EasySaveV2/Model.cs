@@ -20,6 +20,7 @@ namespace EasySaveV2
         public static List<string> dataTransfert = new List<string>();
         public static int saveThreadProcess = 0;
         public static Dictionary<int, Save> currentSaveProcess = new Dictionary<int, Save>();
+        public static double currentTransfertSize = 0;
     }
 
     public class Save
@@ -27,24 +28,19 @@ namespace EasySaveV2
         private int saveIndex;
         private bool isBreak;
         private bool run;
+        private int copied;
+        private int total;
         //Constructeur qui initialise l'index et appelle le démarrage de la sauvegarde
-        public Save(int index)
+        public Save(int index, string jobApp, string logFormat, bool differential, List<string> selectedCryptFileType, List<string> selectedPriorityFileType, double maxSameTimeSize, Barrier barrierPrioritaryFiles)
         {
             this.saveIndex = index;
             this.isBreak = false;
             this.run = true;
+            this.copied = 0;
+            this.total = 0;
             //Ajout de l'objet à la liste des sauvegardes en cours
             GlobalVariables.currentSaveProcess.Add(saveIndex, this);
-            this.StartSave();
-        }
-
-
-        //Méthode qui gère la sauvegarde d'un dossier source
-        private void StartSave()
-        {
-            //Actions de sauvegardes à réaliser
-            DiffuseData("Sauvegarde " + this.saveIndex + " : En cours !");
-            Thread.Sleep(3000);
+            this.StartSave(jobApp, logFormat, differential, selectedCryptFileType, selectedPriorityFileType, maxSameTimeSize, barrierPrioritaryFiles);
         }
 
         //Réalisation d'actions sur la sauvegardes
@@ -71,7 +67,180 @@ namespace EasySaveV2
         {
             GlobalVariables.dataTransfert.Add(data);
         }
+
+        //Méthode qui renvoie la liste des fichiers dans un dossier source
+        public List<string> GetAllFilesInFolder(string path)
+        {
+            List<string> inFolderFiles = new List<string>();
+            foreach(string file in Directory.GetFiles(path))
+            {
+                inFolderFiles.Add(file);
+            }
+            //On ajoute recursivement les fichiers dans les sous-dossiers
+            foreach (string subfolder in Directory.GetDirectories(path))
+            {
+                List<string> getted = GetAllFilesInFolder(subfolder);
+                foreach(string get in getted)
+                {
+                    inFolderFiles.Add(get);
+                }
+            }
+            return inFolderFiles;
+        }
+
+        //Méthode qui compare deux tableaux et vérifie si il y à des corréspondances
+        public List<string> CompareFiles(List<string> sourceFiles, List<string> destinationFiles, int saveIndex)
+        {
+            List<string> copyFiles = new List<string>();
+            foreach (string el in sourceFiles)
+            {
+                string sourceName = "Source" + saveIndex;
+                int indexSource = el.IndexOf(sourceName);
+                string compareEl = el.Substring(indexSource + sourceName.Length);
+                if (!destinationFiles.Any(s => s.IndexOf(compareEl, StringComparison.OrdinalIgnoreCase) >= 0))
+                {
+                    copyFiles.Add(el);
+                }
+            }
+            return copyFiles;
+        }
+
+        //Méthode qui renvoie la liste des fichiers prioritaires / non prioritaires en fonction des paramètres
+        static public List<string> sortByPriority(List<string> toCopyFiles, int type, List<string> selectedPriorityFileType)
+        {
+            List<string> resultList = new List<string>();
+
+            foreach (string el in toCopyFiles)
+            {
+                //On en récupère l'extension
+                string fileExtension = Path.GetExtension(el);
+                //On retire le "."
+                fileExtension = fileExtension.Substring(1);
+                //on vérifie si l'extension se trouve dans la liste
+                if (type == 1)
+                {
+                    if (selectedPriorityFileType.Contains(fileExtension))
+                    {
+                        resultList.Add(el);
+                    }
+                }
+                else
+                {
+                    if (!selectedPriorityFileType.Contains(fileExtension))
+                    {
+                        resultList.Add(el);
+                    }
+                }
+            }
+            return resultList;
+        }
+
+
+        //Méthode qui gère la sauvegarde d'un dossier source
+        private void StartSave(string jobApp, string logFormat, bool differential, List<string> selectedCryptFileType, List<string> selectedPriorityFileType, double maxSameTimeSize, Barrier barrierPrioritaryFiles)
+        {
+            //On commence par définir le nombre total de fichiers à sauvegarder (On retire également les fichiers innutiles à copier en mode séquentiel)
+            //On récupère le chemin d'accès à la source de la sauvegarde
+            string sourcePath = Model.GetParentDirectory(Model.GetFolderPath("Source" + saveIndex), "Source" + saveIndex);
+            //On récupère le chemin d'accès de la destination de la sauvegarde
+            string destinationPath = Model.GetParentDirectory(Model.GetFolderPath("Destination" + saveIndex), "Destination" + saveIndex);
+            //On initialise le tableau qui contiendra tous les fichiers qui devront être copiées
+            List<string> toCopyFiles = new List<string>();
+            //On récupère la liste des fichiers dans la source
+            List<string> sourceFiles = GetAllFilesInFolder(sourcePath);
+            //Si le mode est differentiel, alors on compare les deux listes et on retire les elements que l'on à pas besoin de copier
+            if (differential == true)
+            {
+                //On récupère la liste des fichiers dans la destination
+                List<string> destinationFiles = GetAllFilesInFolder(destinationPath);
+                //On réalise la comparaison entre les deux tableaux
+                toCopyFiles = CompareFiles(sourceFiles, destinationFiles, saveIndex);
+            }
+            else
+            {
+                toCopyFiles = sourceFiles;
+            }
+            //Maintenant que l'on a la liste des fichiers à copier, on va la diviser en deux listes, les fichiers prioritaires et les autres fichiers
+            List<string> PrioritaryToCopyFiles = sortByPriority(toCopyFiles, 1, selectedPriorityFileType);
+            List<string> NormalToCopyFiles = sortByPriority(toCopyFiles, 0, selectedPriorityFileType);
+
+            //On construit alors une nouvelle liste avec les fichiers prioritaires ne premier et les fichiers normaux ensuite
+            List<string> filesToCopy = new List<string>();
+            foreach (string el in PrioritaryToCopyFiles)
+            {
+                filesToCopy.Add(el);
+            }
+            foreach (string el in NormalToCopyFiles)
+            {
+                filesToCopy.Add(el);
+            }
+
+            //Avant de lancer la copie des fichiers, on va envoyer une instruction pour initialiser la barre de chargement
+            //DiffuseData("{ " + saveIndex + " } -> [state] - (0)");
+            //DiffuseData("{ " + saveIndex + " } -> [play]");
+
+            //On enregistre le nombre total de fichier à crypter
+            this.total = filesToCopy.Count();
+
+            //Pour chaque fichier de notre liste
+            foreach(string currentFile in filesToCopy)
+            {
+                //On contrôle si la sauvegarde est toujours active
+                if(this.run == true)
+                {
+                    //On contrôle si la sauvegarde est en pause : attendre 1 seconde puis ré-essayer
+                    while(this.isBreak == true)
+                    {
+                        Thread.Sleep(1000);
+                    }
+                    //On contrôle si l'application est ouverte ou non, si c'est le cas on attend une seconde et demi avant un nouvel essaie
+                    while (Model.IsProcessOpen(jobApp))
+                    {
+                        Thread.Sleep(1500);
+                    }
+                    //On contrôle si le fichier que l'on s'apprête à copier est prioritaire
+                    if (!PrioritaryToCopyFiles.Contains(currentFile))
+                    {
+                        barrierPrioritaryFiles.SignalAndWait();
+                    }
+                    //On contrôle si la taille totale maximale n'est pas dépassé avant de lancer la copie
+                    //On commence par récuperer la taille du fichier
+                    FileInfo currentFileInfo = new FileInfo(currentFile);
+                    long fileSizeInOctets = currentFileInfo.Length;
+                    //On contrôle que la taille maximum autorisée ne soit pas dépassé, sinon on attend 1 seconde avec un nouvel essaie
+                    while(((fileSizeInOctets + GlobalVariables.currentTransfertSize) > maxSameTimeSize) && (GlobalVariables.currentTransfertSize != 0))
+                    {
+                        Thread.Sleep(1000);
+                    }
+                    //Si la taille simultanée le permet ou est nulle, on ajoute la taille du fichier courant a notre taille totale de transfert
+                    GlobalVariables.currentTransfertSize += fileSizeInOctets;
+                    //On récupère l'adresse de la destination par rapport à l'adresse source
+                    string destPath = sourcePath.Replace("Source", "Destination");
+                    //On créé le dossier de déstination s'il n'existe pas déjà
+                    if (!Directory.Exists(destPath))
+                    {
+                        Directory.CreateDirectory(destPath);
+                    }
+
+                    
+                    //On vérifie si il y a un ou plusieurs sous-dossier : on les crées si nécessaires
+
+                    //Fin de copie du fichier, on retire la taille du fichier courant de notre taille totale de transfert
+                    GlobalVariables.currentTransfertSize -= fileSizeInOctets;
+
+                    
+                } else
+                {
+                    //Si ce n'est plus le cas, sors de la boucle
+                    break;
+                }
+            }
+            //Attendre que tous les threads soient terminées
+            barrierPrioritaryFiles.SignalAndWait();
+        }
     }
+
+
 
     class Model
     {
@@ -88,14 +257,17 @@ namespace EasySaveV2
         private string logFormat = "JSON";
         private bool differential = false;
         private List<string> selectedCryptFileType = new List<string>();
-        private int maxSameTimeSaves = 2;
+        private int maxSameTimeSaves = 64;
+        private int maxSameTimeSize = 50000;
         private delegate void DELG(object state);
         private static System.Threading.Semaphore semaphore;
 
         //Méthode qui permet de gérer une liste d'attente entre toutes les sauvegardes qui doivent être créers.
-        //Actuallement le nombre d'instance simultannée est défini à 2 en dur plus haut mais à terme sera paramétrable par l'utilisateur.
         public void SemaphoreWaitList(List<int> listOfSaves)
         {
+            Barrier barrierPrioritaryFiles = new Barrier(participantCount: listOfSaves.Count());
+            //Réinitialisation de la taille de transfert en cours (au cas où il ne se serait pas remis de lui-même à 0)
+            GlobalVariables.currentTransfertSize = 0;
             //Déclaration du sémaphore
             semaphore = new System.Threading.Semaphore(maxSameTimeSaves, maxSameTimeSaves);
             DELG waitList = (state) =>
@@ -104,12 +276,13 @@ namespace EasySaveV2
                 semaphore.WaitOne();
                 int saveIndex = (int)state;
                 //Lancement de la sauvegarde en cours
-                Save save = new Save(saveIndex);
+                Save save = new Save(saveIndex, jobApp, logFormat, differential, selectedCryptFileType, selectedCryptFileType, maxSameTimeSize, barrierPrioritaryFiles);
                 //On retire l'objet de notre liste d'objet en cours d'exécution
                 GlobalVariables.currentSaveProcess.Remove(saveIndex);
                 //Libération d'une place dans la liste d'attente
-                semaphore.Release();
                 GlobalVariables.saveThreadProcess--;
+                semaphore.Release();
+                
             };
             //Pour chaque sauvegarde
             foreach (int index in listOfSaves)
@@ -118,6 +291,7 @@ namespace EasySaveV2
                 System.Threading.Thread t = new System.Threading.Thread(waitList.Invoke);
                 //Démarage du thread
                 t.Start(((object)(index)));
+
             }
         }
 
@@ -651,7 +825,7 @@ namespace EasySaveV2
         }
 
         //Method that determines whether the business process is active or not
-        public bool IsProcessOpen()
+        public static bool IsProcessOpen(string jobApp)
         {
             Process[] currentProcess = Process.GetProcesses();
             if (currentProcess.Any(p => p.ProcessName == jobApp))
@@ -683,10 +857,10 @@ namespace EasySaveV2
             foreach (string filePath in allFiles)
             {
                 //We check that the business application is not launched
-                if (IsProcessOpen())
+                if (IsProcessOpen(jobApp))
                 {
                     //We wait for the process to be closed
-                    while (IsProcessOpen())
+                    while (IsProcessOpen(jobApp))
                     {
                         //Wait 500ms before running again
                         Thread.Sleep(500);
@@ -838,7 +1012,7 @@ namespace EasySaveV2
             return newPath;
         }
 
-        static string GetFolderPath(string folderName)
+        public static string GetFolderPath(string folderName)
         {
             string path = null;
             // Get path user desktop folders
@@ -856,7 +1030,7 @@ namespace EasySaveV2
             return path;
         }
 
-        static string GetParentDirectory(string path, string name)
+        public static string GetParentDirectory(string path, string name)
         {
             string parentDir = path;
             if (path != null)
@@ -870,7 +1044,7 @@ namespace EasySaveV2
             return parentDir;
         }
 
-        static string[] GetSubDirectories(string parentFolderPath)
+        public static string[] GetSubDirectories(string parentFolderPath)
         {
             // Use Directory.GetDirectories to get the list of folders
             string[] subDirectories = Directory.GetDirectories(parentFolderPath);
@@ -878,7 +1052,7 @@ namespace EasySaveV2
             return subDirectories;
         }
 
-        static string SearchFolderInDrives(string folderName)
+        public static string SearchFolderInDrives(string folderName)
         {
             DriveInfo[] drives = DriveInfo.GetDrives();
 
@@ -896,7 +1070,7 @@ namespace EasySaveV2
             return string.Empty; // No folder found
         }
 
-        static string SearchFolderInDrive(string folderName, DirectoryInfo currentDirectory)
+        public static string SearchFolderInDrive(string folderName, DirectoryInfo currentDirectory)
         {
             try
             {
