@@ -37,7 +37,7 @@ namespace EasySaveV2
                 if(_progressBarList != value)
                 {
                     _progressBarList = value;
-                    OnPropertyChanged();
+                    OnPropertyChanged(nameof(ProgressBarList));
                 }
                 
             }
@@ -71,6 +71,7 @@ namespace EasySaveV2
                 {
                     // Logique de pause
                     // Exemple : Pause la lecture
+                    
                 }
                 else
                 {
@@ -85,6 +86,7 @@ namespace EasySaveV2
         {
             // Logique d'arrêt (par exemple, arrêter complètement la lecture)
             // Réinitialisez également la propriété IsPlaying si nécessaire
+            
         }
 
         public string getMessageFromParameter(string param)
@@ -165,7 +167,6 @@ namespace EasySaveV2
                         ResultText = model.getMessage(finalUserPrompt);
                     } else
                     {
-                        GlobalVariables.dataTransfert.Clear();
                         GlobalVariables.saveThreadProcess = 0;
                         //From here, this piece of code corresponds to the program frame
                         //We start by extracting the information into an array of integers and an integer
@@ -191,6 +192,15 @@ namespace EasySaveV2
             }
         }
 
+        //Méthode pour kill tous les threads en cours d'exécution
+        public void killAllThreads()
+        {
+            foreach(int el in GlobalVariables.currentSaveProcess.Keys)
+            {
+                model.actionOnSave(el, "kill");
+            }
+        }
+
         //Méthode pour mettre à jour la progress bar en fonction de son nom
         public void EditProgressBarValue(string name, int newValue)
         {
@@ -202,6 +212,7 @@ namespace EasySaveV2
                 {
                     //Mettre à jour la valeur de la barre de progression
                     element.ProgressBarValue = newValue;
+                    element.FormattedProgressBarValue = "" + newValue;
                     //Sortir de la boucle car nous avons trouvé l'élément
                     break;
                 }
@@ -242,7 +253,7 @@ namespace EasySaveV2
         }
 
     }
-    public class ProgressBarElement
+    public class ProgressBarElement: INotifyPropertyChanged
     {
         public string Name { get; set; }
 
@@ -257,15 +268,26 @@ namespace EasySaveV2
                 if(_progressBarValue != value)
                 {
                     _progressBarValue = value;
-                    MessageBoxResult displayer = MessageBox.Show("val:" + _progressBarValue, "Return from Model", MessageBoxButton.OK, MessageBoxImage.Information);
                     OnPropertyChanged(nameof(ProgressBarValue));
                 }
             }
         }
 
+        private string _formattedValue;
         public string FormattedProgressBarValue
         {
-            get { return $"{ProgressBarValue}%"; }
+            get
+            {
+                return $"{_formattedValue}%";
+            }
+            set
+            {
+                if(_formattedValue != value)
+                {
+                    _formattedValue = value;
+                    OnPropertyChanged(nameof(FormattedProgressBarValue));
+                }
+            }
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
@@ -274,6 +296,8 @@ namespace EasySaveV2
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
+
+
 
 
     }

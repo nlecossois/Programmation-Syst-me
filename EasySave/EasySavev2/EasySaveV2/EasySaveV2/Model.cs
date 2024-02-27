@@ -18,7 +18,6 @@ namespace EasySaveV2
     public static class GlobalVariables
     {
         public static ViewModel vm;
-        public static List<string> dataTransfert = new List<string>();
         public static int saveThreadProcess = 0;
         public static Dictionary<int, Save> currentSaveProcess = new Dictionary<int, Save>();
         public static double currentTransfertSize = 0;
@@ -46,7 +45,21 @@ namespace EasySaveV2
             this.total = 0;
             this.copied = 0;
             //Adding the object to the list of current backups
-            GlobalVariables.currentSaveProcess.Add(saveIndex, this);
+            while (true)
+            {
+                try
+                {
+                    GlobalVariables.currentSaveProcess.Add(saveIndex, this);
+                    break;
+                }
+                catch(Exception ex)
+                {
+
+                }
+                
+            }
+            
+
             this.StartSave(jobApp, logFormat, differential, selectedCryptFileType, selectedPriorityFileType, maxSameTimeSize, barrierPrioritaryFiles);
         }
 
@@ -365,7 +378,7 @@ namespace EasySaveV2
                     int finalPct = (int)Math.Ceiling(pct);
 
                     //We pass it on to the other class
-                    GlobalVariables.vm.EditProgressBarValue("Save 1", finalPct);
+                    GlobalVariables.vm.EditProgressBarValue("Save " + saveIndex, finalPct);
 
                     //here, we place a mutex so that only one thread at a time can access the log file
                     mutexLog.WaitOne();
@@ -432,7 +445,18 @@ namespace EasySaveV2
                 //Starting backup
                 Save save = new Save(saveIndex, jobApp, logFormat, differential, selectedCryptFileType, selectedCryptFileType, maxSameTimeSize, barrierPrioritaryFiles);
                 //We remove the object from our running object list
-                GlobalVariables.currentSaveProcess.Remove(saveIndex);
+                while (true)
+                {
+                    try
+                    {
+                        GlobalVariables.currentSaveProcess.Remove(saveIndex);
+                        break;
+                    } catch (Exception ex)
+                    {
+
+                    }
+                }
+                
                 //Freeing up a place in the waiting list
                 GlobalVariables.saveThreadProcess--;
                 semaphore.Release();
