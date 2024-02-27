@@ -114,6 +114,8 @@
                         </ComboBox>
                         <TextBlock Text="{Binding AppPrintJobApp}" Margin="0,0,0,5"/>
                         <TextBox x:Name="InputTextBox" Margin="10" Width="200" Height="30" Text="{Binding CurrentJobApp}"/>
+                        <TextBlock Text="{Binding AppPrintMaxTransfert}" Margin="0,0,0,5"/>
+                        <TextBox x:Name="MaxTransfert" Margin="10" Width="200" Height="30" Text="{Binding CurrentMaxTransfert}"/>
                     </StackPanel>
                 </ScrollViewer>
             </Border>
