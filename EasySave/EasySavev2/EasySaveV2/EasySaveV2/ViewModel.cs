@@ -19,8 +19,6 @@ namespace EasySaveV2
         Model model = new Model();
         public ICommand SaveWork { get; private set; }
         public ICommand OpenSettingsCommand { get; private set; }
-        public ICommand TogglePlayPauseCommand => new RelayCommand(ExecuteTogglePlayPauseCommand);
-        public ICommand StopCommand => new RelayCommand(ExecuteStopCommand);
         public string lang;
         public string logType;
         public string copyType;
@@ -48,63 +46,6 @@ namespace EasySaveV2
         public string AppPrinterCalc
         {
             get { return model.getMessage("{{ app.printer.calc }}"); }
-        }
-
-        private bool _isPlaying;
-
-        public bool IsPlaying
-        {
-            get { return _isPlaying; }
-            set
-            {
-                if (_isPlaying != value)
-                {
-                    _isPlaying = value;
-                    OnPropertyChanged(nameof(IsPlaying));
-                }
-            }
-        }
-       
-        private void ExecuteTogglePlayPauseCommand(object parameter)
-        {
-            string name = parameter.ToString();
-            string part = name.Split(' ')[1];
-            if (IsPlaying)
-                {
-                    if (parameter != null)
-                    {
-                    
-                    
-                    model.actionOnSave(int.Parse(part), "break");
-
-                    // Logique de pause
-                    // Exemple : Pause la lecture
-
-                }
-            }
-                else
-                {
-                    // Logique de démarrage
-                    // Exemple : Démarre la lecture
-                    if (parameter != null)
-                    {
-                    
-
-                    model.actionOnSave(int.Parse(part), "unbreak");
-                    // Logique de pause
-                    // Exemple : Pause la lecture
-
-                }
-            }
-            IsPlaying = !IsPlaying;
-        }
-        
-
-        private void ExecuteStopCommand(object parameter)
-        {
-            // Logique d'arrêt (par exemple, arrêter complètement la lecture)
-            // Réinitialisez également la propriété IsPlaying si nécessaire
-            
         }
 
         public string getMessageFromParameter(string param)
@@ -147,8 +88,6 @@ namespace EasySaveV2
             OpenSettingsCommand = new RelayCommand(OpenSettings);
             SaveWork = new RelayCommand(Click, CanExecute);
             ProgressBarList = new ObservableCollection<ProgressBarElement> {};
-
-            
         }
 
         private bool CanExecute(object parameter)
@@ -273,8 +212,11 @@ namespace EasySaveV2
     }
     public class ProgressBarElement: INotifyPropertyChanged
     {
-        public string Name { get; set; }
 
+        Model model = new Model();
+        public string Name { get; set; }
+        public ICommand TogglePlayPauseCommand => new RelayCommand(ExecuteTogglePlayPauseCommand);
+        public ICommand StopCommand => new RelayCommand(ExecuteStopCommand);
         private int _progressBarValue;
         public int ProgressBarValue {
             get
@@ -287,6 +229,19 @@ namespace EasySaveV2
                 {
                     _progressBarValue = value;
                     OnPropertyChanged(nameof(ProgressBarValue));
+                }
+            }
+        }
+        private bool _isPlaying;
+        public bool IsPlaying
+        {
+            get { return _isPlaying; }
+            set
+            {
+                if (_isPlaying != value)
+                {
+                    _isPlaying = value;
+                    OnPropertyChanged(nameof(IsPlaying));
                 }
             }
         }
@@ -308,15 +263,42 @@ namespace EasySaveV2
             }
         }
 
+        private void ExecuteTogglePlayPauseCommand(object parameter)
+        {
+            if (parameter != null)
+            {
+                string name = parameter.ToString();
+                string part = name.Split(' ')[1];
+                if (!IsPlaying)
+                {
+                    // Logique de pause
+                    // Exemple : Pause la lecture
+                    model.actionOnSave(int.Parse(part), "break");
+                }
+                else
+                {
+                    // Logique de démarrage
+                    // Exemple : Démarre la lecture
+                    model.actionOnSave(int.Parse(part), "unbreak");
+                }
+            }
+            IsPlaying = !IsPlaying;
+        }
+
+        private void ExecuteStopCommand(object parameter)
+        {
+            // Logique d'arrêt (par exemple, arrêter complètement la lecture)
+            // Réinitialisez également la propriété IsPlaying si nécessaire
+            string name = parameter.ToString();
+            string part = name.Split(' ')[1];
+            model.actionOnSave(int.Parse(part), "kill");
+        }
+
         public event PropertyChangedEventHandler PropertyChanged;
 
         protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
-
-
-
-
     }
 }

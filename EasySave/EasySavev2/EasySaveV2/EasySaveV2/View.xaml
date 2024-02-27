@@ -124,7 +124,7 @@
 
                                     <!-- Start & Stop buttons -->
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                        <Button Height="30" Width="60" Margin="5"  Command="{Binding TogglePlayPauseCommand}" CommandParameter="{Binding Name}">
+                                        <Button Height="30" Width="60" Margin="5" Command="{Binding TogglePlayPauseCommand}" CommandParameter="{Binding Name}">
                                             <Button.ContentTemplate>
                                                 <DataTemplate>
                                                     <Grid>
@@ -141,7 +141,7 @@
                                                 </DataTemplate>
                                             </Button.ContentTemplate>
                                         </Button>
-                                        <Button Height="30" Width="30" Margin="5" Command="{Binding StopCommand}" CommandParameter="Stop">
+                                        <Button Height="30" Width="30" Margin="5" Command="{Binding StopCommand}" CommandParameter="{Binding Name}">
                                             <Button.ContentTemplate>
                                                 <DataTemplate>
                                                     <StackPanel Orientation="Horizontal">
