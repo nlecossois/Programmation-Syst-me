@@ -69,15 +69,26 @@ namespace EasySaveV2
         {
                 if (IsPlaying)
                 {
-                    // Logique de pause
-                    // Exemple : Pause la lecture
-                    
+                    if (parameter != null)
+                    {
+                        string name = parameter.ToString();
+                        // Logique de pause
+                        // Exemple : Pause la lecture
+
+                    }
                 }
                 else
                 {
                     // Logique de démarrage
                     // Exemple : Démarre la lecture
-                }
+                    if (parameter != null)
+                    {
+                        string name = parameter.ToString();
+                        // Logique de pause
+                        // Exemple : Pause la lecture
+
+                    }
+            }
             IsPlaying = !IsPlaying;
         }
         

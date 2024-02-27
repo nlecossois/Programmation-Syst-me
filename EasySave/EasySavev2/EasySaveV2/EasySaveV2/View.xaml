@@ -124,7 +124,7 @@
 
                                     <!-- Start & Stop buttons -->
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                        <Button Height="30" Width="60" Margin="5"  Command="{Binding TogglePlayPauseCommand}">
+                                        <Button Height="30" Width="60" Margin="5"  Command="{Binding TogglePlayPauseCommand}" CommandParameter="{Binding Name}">
                                             <Button.ContentTemplate>
                                                 <DataTemplate>
                                                     <Grid>
