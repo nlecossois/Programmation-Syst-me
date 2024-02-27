@@ -6,7 +6,7 @@
         xmlns:iconPacks="http://mahapps.com/winfx/xaml/iconpacks"
         xmlns:local="clr-namespace:EasySaveV2"
         mc:Ignorable="d"
-        Title="EasySaveV2" Height="450" Width="400" MinWidth="410" MinHeight="480" Background="#D6D6D6">
+        Title="EasySaveV3" Height="450" Width="400" MinWidth="410" MinHeight="480" Background="#D6D6D6">
     <Grid VerticalAlignment="Top" Height="426">
         <!-- Partie en-tête -->
         <Grid Background="#2A2A2A" Margin="0,0,0,369">
@@ -99,7 +99,7 @@
                             </Setter>
                         </Style>
                     </ScrollViewer.Resources>
-                    <ItemsControl ItemsSource="{Binding VotreCollection}" >
+                    <ItemsControl ItemsSource="{Binding ProgressBarList}" >
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
                                 <StackPanel Margin="5">
@@ -124,7 +124,7 @@
 
                                     <!-- Start & Stop buttons -->
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                        <Button Height="30" Width="60" Margin="5"  Command="{Binding TogglePlayPauseCommand}">
+                                        <Button Height="30" Width="60" Margin="5" Command="{Binding TogglePlayPauseCommand}" CommandParameter="{Binding Name}">
                                             <Button.ContentTemplate>
                                                 <DataTemplate>
                                                     <Grid>
@@ -141,7 +141,7 @@
                                                 </DataTemplate>
                                             </Button.ContentTemplate>
                                         </Button>
-                                        <Button Height="30" Width="30" Margin="5" Command="{Binding StopCommand}" CommandParameter="Stop">
+                                        <Button Height="30" Width="30" Margin="5" Command="{Binding StopCommand}" CommandParameter="{Binding Name}">
                                             <Button.ContentTemplate>
                                                 <DataTemplate>
                                                     <StackPanel Orientation="Horizontal">

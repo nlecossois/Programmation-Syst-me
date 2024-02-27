@@ -47,6 +47,8 @@ public partial class View : Window
 
             void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
             {
+                //We kill all the threads
+                GlobalVariables.vm.killAllThreads();
                 mutex.ReleaseMutex();
             }
 

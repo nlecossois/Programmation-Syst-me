@@ -17,7 +17,7 @@ namespace EasySaveV2
     //Global variables used
     public static class GlobalVariables
     {
-        public static List<string> dataTransfert = new List<string>();
+        public static ViewModel vm;
         public static int saveThreadProcess = 0;
         public static Dictionary<int, Save> currentSaveProcess = new Dictionary<int, Save>();
         public static double currentTransfertSize = 0;
@@ -45,7 +45,21 @@ namespace EasySaveV2
             this.total = 0;
             this.copied = 0;
             //Adding the object to the list of current backups
-            GlobalVariables.currentSaveProcess.Add(saveIndex, this);
+            while (true)
+            {
+                try
+                {
+                    GlobalVariables.currentSaveProcess.Add(saveIndex, this);
+                    break;
+                }
+                catch(Exception ex)
+                {
+
+                }
+                
+            }
+            
+
             this.StartSave(jobApp, logFormat, differential, selectedCryptFileType, selectedPriorityFileType, maxSameTimeSize, barrierPrioritaryFiles);
         }
 
@@ -66,12 +80,6 @@ namespace EasySaveV2
                     currentSave.run = false;
                 }
             }
-        }
-
-        //Method that sends data to the model
-        private void DiffuseData(string data)
-        {
-            GlobalVariables.dataTransfert.Add(data);
         }
 
         //Method that returns the list of files in a source folder
@@ -208,7 +216,7 @@ namespace EasySaveV2
         //Method that manages the backup of a source folder
         private void StartSave(string jobApp, string logFormat, bool differential, List<string> selectedCryptFileType, List<string> selectedPriorityFileType, double maxSameTimeSize, Barrier barrierPrioritaryFiles)
         {
-            //We initialize the mutex used to access our log and status files
+            //We initialize the mutex used to access our log and diffuse message
             mutexLog = new System.Threading.Mutex(false);
             //We start by defining the total number of files to save (We also remove unnecessary files to copy in sequential mode)
             //We retrieve the path to the backup source
@@ -270,10 +278,22 @@ namespace EasySaveV2
                     {
                         Thread.Sleep(1000);
                     }
-                    //We check whether the business application is open or not, if so we wait a second and a half before trying again
-                    while (Model.IsProcessOpen(jobApp))
+                    if (this.run == false)
                     {
-                        Thread.Sleep(1500);
+                        break;
+                    }
+                    //We check whether the business application is open or not, if so we wait a second and a half before trying again
+                    if (Model.IsProcessOpen(jobApp))
+                    {
+                        GlobalVariables.vm.EditMessageOnProgressBar("Save " + saveIndex, "{{ thread.waitForJobApp }}");
+                        while (Model.IsProcessOpen(jobApp))
+                        {
+                            Thread.Sleep(500);
+                        }
+                    }
+                    if (this.run == false)
+                    {
+                        break;
                     }
                     //We check if the file we are about to copy has priority
                     if (!PrioritaryToCopyFiles.Contains(currentFile))
@@ -368,8 +388,10 @@ namespace EasySaveV2
                     float fileTotal = this.total;
                     float pct = ((fileCopied / fileTotal) * 100);
                     int finalPct = (int)Math.Ceiling(pct);
-                    //We pass it on to the other classes
-                    DiffuseData("Save" + saveIndex + " : " + finalPct);
+
+                    //We pass it on to the other class
+                    GlobalVariables.vm.EditProgressBarValue("Save " + saveIndex, finalPct);
+
                     //here, we place a mutex so that only one thread at a time can access the log file
                     mutexLog.WaitOne();
                     //If log format is json:
@@ -389,10 +411,13 @@ namespace EasySaveV2
 
                     //End of copying the file, we remove the size of the current file from our total transfer size
                     GlobalVariables.currentTransfertSize -= fileSizeInOctets;
+                    Thread.Sleep(1000);
                 } else
                 {
                     //If this is no longer the case, get out of the loop
+                    GlobalVariables.vm.EditMessageOnProgressBar("Save " + saveIndex, "{{ thread.killed }}");
                     break;
+
                 }
             }
         }
@@ -434,7 +459,18 @@ namespace EasySaveV2
                 //Starting backup
                 Save save = new Save(saveIndex, jobApp, logFormat, differential, selectedCryptFileType, selectedCryptFileType, maxSameTimeSize, barrierPrioritaryFiles);
                 //We remove the object from our running object list
-                GlobalVariables.currentSaveProcess.Remove(saveIndex);
+                while (true)
+                {
+                    try
+                    {
+                        GlobalVariables.currentSaveProcess.Remove(saveIndex);
+                        break;
+                    } catch (Exception ex)
+                    {
+
+                    }
+                }
+                
                 //Freeing up a place in the waiting list
                 GlobalVariables.saveThreadProcess--;
                 semaphore.Release();
@@ -455,6 +491,25 @@ namespace EasySaveV2
         public void actionOnSave(int index, string action)
         {
             Save.SaveInteract(index, action);
+        }
+
+        //Method used to define the max transfert size
+        public void setMaxSizeTransfert(string max)
+        {
+            try
+            {
+                maxSameTimeSize = int.Parse(max);
+            }
+            catch (Exception ex)
+            {
+                maxSameTimeSize = 50000;
+            }
+        }
+
+        //Methode used to get the max transfert size
+        public string getMaxSizeTransfert()
+        {
+            return "" + maxSameTimeSize;
         }
 
         //Method used to define file types that will be encrypted
