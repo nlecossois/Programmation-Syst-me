@@ -72,10 +72,11 @@ namespace EasySaveV2
                     if (parameter != null)
                     {
                         string name = parameter.ToString();
-                        // Logique de pause
-                        // Exemple : Pause la lecture
+                    MessageBoxResult result = MessageBox.Show(name, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    // Logique de pause
+                    // Exemple : Pause la lecture
 
-                    }
+                }
                 }
                 else
                 {
@@ -84,10 +85,11 @@ namespace EasySaveV2
                     if (parameter != null)
                     {
                         string name = parameter.ToString();
-                        // Logique de pause
-                        // Exemple : Pause la lecture
+                        MessageBoxResult result = MessageBox.Show(name, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    // Logique de pause
+                    // Exemple : Pause la lecture
 
-                    }
+                }
             }
             IsPlaying = !IsPlaying;
         }
