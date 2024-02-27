@@ -439,7 +439,7 @@ namespace EasySaveV2
         private bool differential = false;
         private List<string> selectedCryptFileType = new List<string>();
         private int maxSameTimeSaves = 64;
-        private int maxSameTimeSize = 1500000;
+        private int maxSameTimeSize = 50000;
         private delegate void DELG(object state);
         private static System.Threading.Semaphore semaphore;
 
@@ -502,7 +502,7 @@ namespace EasySaveV2
             }
             catch (Exception ex)
             {
-                maxSameTimeSize = 1500000;
+                maxSameTimeSize = 50000;
             }
         }
 
