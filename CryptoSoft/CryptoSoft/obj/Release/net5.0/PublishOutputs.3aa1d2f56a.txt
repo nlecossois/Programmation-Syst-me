@@ -1,0 +1,5 @@
+D:\Desktop\CESI\A3 - FISA INFO\2 - Programmation Système\Projet\CryptoSoft.exe
+D:\Desktop\CESI\A3 - FISA INFO\2 - Programmation Système\Projet\CryptoSoft.dll
+D:\Desktop\CESI\A3 - FISA INFO\2 - Programmation Système\Projet\CryptoSoft.deps.json
+D:\Desktop\CESI\A3 - FISA INFO\2 - Programmation Système\Projet\CryptoSoft.runtimeconfig.json
+D:\Desktop\CESI\A3 - FISA INFO\2 - Programmation Système\Projet\CryptoSoft.pdb

@@ -1,0 +1,15 @@
+D:\Desktop\CESI\A3 - FISA INFO\2 - Programmation Système\Projet\CryptoSoft\CryptoSoft\CryptoSoft\bin\Release\net5.0\CryptoSoft.exe
+D:\Desktop\CESI\A3 - FISA INFO\2 - Programmation Système\Projet\CryptoSoft\CryptoSoft\CryptoSoft\bin\Release\net5.0\CryptoSoft.deps.json
+D:\Desktop\CESI\A3 - FISA INFO\2 - Programmation Système\Projet\CryptoSoft\CryptoSoft\CryptoSoft\bin\Release\net5.0\CryptoSoft.runtimeconfig.json
+D:\Desktop\CESI\A3 - FISA INFO\2 - Programmation Système\Projet\CryptoSoft\CryptoSoft\CryptoSoft\bin\Release\net5.0\CryptoSoft.runtimeconfig.dev.json
+D:\Desktop\CESI\A3 - FISA INFO\2 - Programmation Système\Projet\CryptoSoft\CryptoSoft\CryptoSoft\bin\Release\net5.0\CryptoSoft.dll
+D:\Desktop\CESI\A3 - FISA INFO\2 - Programmation Système\Projet\CryptoSoft\CryptoSoft\CryptoSoft\bin\Release\net5.0\ref\CryptoSoft.dll
+D:\Desktop\CESI\A3 - FISA INFO\2 - Programmation Système\Projet\CryptoSoft\CryptoSoft\CryptoSoft\bin\Release\net5.0\CryptoSoft.pdb
+D:\Desktop\CESI\A3 - FISA INFO\2 - Programmation Système\Projet\CryptoSoft\CryptoSoft\CryptoSoft\obj\Release\net5.0\CryptoSoft.GeneratedMSBuildEditorConfig.editorconfig
+D:\Desktop\CESI\A3 - FISA INFO\2 - Programmation Système\Projet\CryptoSoft\CryptoSoft\CryptoSoft\obj\Release\net5.0\CryptoSoft.AssemblyInfoInputs.cache
+D:\Desktop\CESI\A3 - FISA INFO\2 - Programmation Système\Projet\CryptoSoft\CryptoSoft\CryptoSoft\obj\Release\net5.0\CryptoSoft.AssemblyInfo.cs
+D:\Desktop\CESI\A3 - FISA INFO\2 - Programmation Système\Projet\CryptoSoft\CryptoSoft\CryptoSoft\obj\Release\net5.0\CryptoSoft.csproj.CoreCompileInputs.cache
+D:\Desktop\CESI\A3 - FISA INFO\2 - Programmation Système\Projet\CryptoSoft\CryptoSoft\CryptoSoft\obj\Release\net5.0\CryptoSoft.dll
+D:\Desktop\CESI\A3 - FISA INFO\2 - Programmation Système\Projet\CryptoSoft\CryptoSoft\CryptoSoft\obj\Release\net5.0\ref\CryptoSoft.dll
+D:\Desktop\CESI\A3 - FISA INFO\2 - Programmation Système\Projet\CryptoSoft\CryptoSoft\CryptoSoft\obj\Release\net5.0\CryptoSoft.pdb
+D:\Desktop\CESI\A3 - FISA INFO\2 - Programmation Système\Projet\CryptoSoft\CryptoSoft\CryptoSoft\obj\Release\net5.0\CryptoSoft.genruntimeconfig.cache
