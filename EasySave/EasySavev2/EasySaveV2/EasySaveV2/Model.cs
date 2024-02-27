@@ -283,9 +283,17 @@ namespace EasySaveV2
                         break;
                     }
                     //We check whether the business application is open or not, if so we wait a second and a half before trying again
-                    while (Model.IsProcessOpen(jobApp))
+                    if (Model.IsProcessOpen(jobApp))
                     {
-                        Thread.Sleep(1500);
+                        GlobalVariables.vm.EditMessageOnProgressBar("Save " + saveIndex, "{{ thread.waitForJobApp }}");
+                        while (Model.IsProcessOpen(jobApp))
+                        {
+                            Thread.Sleep(500);
+                        }
+                    }
+                    if (this.run == false)
+                    {
+                        break;
                     }
                     //We check if the file we are about to copy has priority
                     if (!PrioritaryToCopyFiles.Contains(currentFile))
