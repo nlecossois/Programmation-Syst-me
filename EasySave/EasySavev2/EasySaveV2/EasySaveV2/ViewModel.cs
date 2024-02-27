@@ -28,6 +28,8 @@ namespace EasySaveV2
         public ObservableCollection<MonElement> VotreCollection { get; set; }
         private string _inputText;
         private string _resultText;
+        private bool _processed = false;
+
         public string AppPrinterCalc
         {
             get { return model.getMessage("{{ app.printer.calc }}"); }
@@ -119,7 +121,14 @@ namespace EasySaveV2
         private bool CanExecute(object parameter)
         {
             //Logic to determine if the command can be executed
-            return true;
+            if(GlobalVariables.saveThreadProcess == 0 && _processed == false)
+            {
+                return true;
+            } else
+            {
+                return false;
+            }
+            
         }
 
         private void Click(object parameter)
@@ -136,16 +145,58 @@ namespace EasySaveV2
                 }
                 else
                 {
-                    if (model.IsProcessOpen()) {
-                        ResultText = model.getMessage("{{ error.jobAppIsOpen }}");
+                    //Retrieving the backups to run and the total number of backups
+                    string finalUserPrompt = model.GetSaveData(formatUserPrompt);
+                    if (finalUserPrompt.Contains("error"))
+                    {
+                        ResultText = model.getMessage(finalUserPrompt);
                     } else
                     {
-                        ResultText = model.getMessage(model.SaveFolder(model.StringToList(formatUserPrompt)));
+                        _processed = true;
+                        //From here, this piece of code corresponds to the program frame
+                        //We start by extracting the information into an array of integers and an integer
+                        int amountOfSaves = model.extractUserPrompt(finalUserPrompt, 1);
+                        List<int> listOfSaves = model.extractUserPrompt(finalUserPrompt);
+                        //We perform the action to initialize and load the bars and return an empty ResultText.
+
+                        ResultText = "";
+                        //- LoadProgressBar(amountOfSaves);
+
+                        //We call the model method which will take care of threading each backup and managing the waiting list
+                        model.SemaphoreWaitList(listOfSaves);
+
+                        //We activate the Thread which waits for commands coming from the model
+                        Thread messageGetter = new Thread(new ParameterizedThreadStart(listenData));
+                        messageGetter.Start("messageGetter");
                     }
-                    
                 }
             }
-            
+        }
+
+        //Method that waits to receive an instruction from the Saves
+        private void listenData(Object messageGetter)
+        {
+    
+            while (GlobalVariables.saveThreadProcess != 0)
+            {
+                if (GlobalVariables.dataTransfert.Count != 0)
+                {
+                    //Collecting the first order
+                    string cmd = GlobalVariables.dataTransfert[0];
+                    //Remove this command from the list
+                    GlobalVariables.dataTransfert.RemoveAt(0);
+
+                    //Action to be carried out upon receipt of the order
+                    
+                    
+                }
+                else
+                {
+                    Thread.Sleep(500);
+                }
+            }
+            _processed = false;
+
         }
 
 
