@@ -7,6 +7,7 @@
 	"app.printer.language": "Choose a language:",
 	"app.printer.logType": "Select log file format:",
 	"app.printer.saveParam": "Save",
+	"app.printer.maxTransfert": "Enter the maximum transfer size (o):",
 
 	"error.fillSyntax": "Error: Syntax for using '-' must contain two numbers between 1 and 5 where the first is less than the second.",
 	"error.noSave": "Error: You haven't provided any valid backup.",

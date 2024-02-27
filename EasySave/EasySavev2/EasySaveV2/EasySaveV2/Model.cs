@@ -439,7 +439,7 @@ namespace EasySaveV2
         private bool differential = false;
         private List<string> selectedCryptFileType = new List<string>();
         private int maxSameTimeSaves = 64;
-        private int maxSameTimeSize = 50000;
+        private int maxSameTimeSize = 1500000;
         private delegate void DELG(object state);
         private static System.Threading.Semaphore semaphore;
 
@@ -491,6 +491,25 @@ namespace EasySaveV2
         public void actionOnSave(int index, string action)
         {
             Save.SaveInteract(index, action);
+        }
+
+        //Method used to define the max transfert size
+        public void setMaxSizeTransfert(string max)
+        {
+            try
+            {
+                maxSameTimeSize = int.Parse(max);
+            }
+            catch (Exception ex)
+            {
+                maxSameTimeSize = 1500000;
+            }
+        }
+
+        //Methode used to get the max transfert size
+        public string getMaxSizeTransfert()
+        {
+            return "" + maxSameTimeSize;
         }
 
         //Method used to define file types that will be encrypted

@@ -7,6 +7,8 @@
 	"app.printer.language": "Choisissez une langue:",
 	"app.printer.logType": "Sélectionnez le format du fichier de journalisation:",
 	"app.printer.saveParam": "Enregistrer",
+	"app.printer.maxTransfert": "Saisissez la taille maximum de transfert (o):",
+
 
 	"error.fillSyntax": "Erreur : La syntaxe pour utiliser '-' doit contenir deux nombres compris entre 1 et 5 tel que le premier est inférieur au second.",
 	"error.noSave": "Erreur : Vous n'avez fourni aucune sauvegarde valide.",

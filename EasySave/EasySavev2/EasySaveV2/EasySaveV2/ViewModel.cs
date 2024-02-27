@@ -193,6 +193,11 @@ namespace EasySaveV2
             }
         }
 
+        //Method used to get max transfert size
+        public string getMaxTransfert()
+        {
+            return model.getMaxSizeTransfert();
+        }
 
         private void OpenSettings(object parameter)
         {
@@ -215,6 +220,7 @@ namespace EasySaveV2
                 model.setLang(lang);
                 model.setCopyMethod(copyType);
                 model.setEncryptFileType(selectedScriptingTypes);
+                model.setMaxSizeTransfert(settingsWindow.currentMaxTransfert);
                 OnPropertyChanged("AppPrinterCalc");
             }
         }

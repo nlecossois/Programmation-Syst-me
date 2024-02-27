@@ -23,6 +23,7 @@ namespace EasySaveV2
         private ViewModel viewModel;
         public string SelectedLanguage { get; set; }
         public string currentJobApp;
+        public string currentMaxTransfert;
         private List<string> _selectedScriptingTypes;
         public string SelectedLogType { get; set; }
         public string SelectedCopyType { get; set; }
@@ -54,7 +55,12 @@ namespace EasySaveV2
         public string AppPrintCancelParam { get; set; }
 
         public string AppPrintCopyType { get; set; }
+
+        public string AppPrintMaxTransfert { get; set; }
+
         public string CurrentJobApp { get; set; }
+
+        public string CurrentMaxTransfert { get; set; }
 
 
 
@@ -113,6 +119,7 @@ namespace EasySaveV2
             SelectedCopyType = CopyType.SelectedItem as string;
             DialogResult = true;
             currentJobApp = InputTextBox.Text;
+            currentMaxTransfert = MaxTransfert.Text;
             //This will close the window with a positive result (true).
         }
 
@@ -131,12 +138,14 @@ namespace EasySaveV2
             AppPrintSaveParam = viewModel.getMessageFromParameter("{{ app.printer.saveParam }}");
             AppPrintCancelParam = viewModel.getMessageFromParameter("{{ app.printer.cancelParam }}");
             AppPrintCopyType = viewModel.getMessageFromParameter("{{ app.printer.copyType }}");
+            AppPrintMaxTransfert = viewModel.getMessageFromParameter("{{ app.printer.maxTransfert }}");
             logType.Add("Json");
             logType.Add("Xml");
             copyType.Add(viewModel.getMessageFromParameter("{{ printer.copyType.complete }}"));
             copyType.Add(viewModel.getMessageFromParameter("{{ printer.copyType.differential }}"));
             GetAllLanguage();
             CurrentJobApp = viewModel.getJobApp();
+            CurrentMaxTransfert = viewModel.getMaxTransfert();
             Language.SelectedItem = Languages.Contains(viewModel.lang, StringComparer.OrdinalIgnoreCase) ? viewModel.lang : "EN";
             LogType.SelectedItem = logType.Contains(viewModel.logType, StringComparer.OrdinalIgnoreCase) ? viewModel.logType : "Json";
             CopyType.SelectedItem = copyType.Contains(viewModel.copyType, StringComparer.OrdinalIgnoreCase) ? viewModel.copyType : viewModel.getMessageFromParameter("{{ printer.copyType.complete }}");
