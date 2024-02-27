@@ -278,6 +278,10 @@ namespace EasySaveV2
                     {
                         Thread.Sleep(1000);
                     }
+                    if (this.run == false)
+                    {
+                        break;
+                    }
                     //We check whether the business application is open or not, if so we wait a second and a half before trying again
                     while (Model.IsProcessOpen(jobApp))
                     {
@@ -403,7 +407,9 @@ namespace EasySaveV2
                 } else
                 {
                     //If this is no longer the case, get out of the loop
+                    GlobalVariables.vm.EditMessageOnProgressBar("Save " + saveIndex, "{{ thread.killed }}");
                     break;
+
                 }
             }
         }

@@ -132,10 +132,10 @@ namespace EasySaveV2
                         //We perform the action to initialize and load the bars and return an empty ResultText.
                         ResultText = "";
 
-                        //On vide d'abord la liste des progressbar
+                        //We first empty the list of progressbars
                         ProgressBarList.Clear();
 
-                        //On affiche le bon nombre de barre de progression
+                        //We display the correct number of progress bars
                         foreach (int index in listOfSaves)
                         {
                             ProgressBarList.Add(
@@ -149,7 +149,7 @@ namespace EasySaveV2
             }
         }
 
-        //Méthode pour kill tous les threads en cours d'exécution
+        //Method to kill all running threads
         public void killAllThreads()
         {
             foreach(int el in GlobalVariables.currentSaveProcess.Keys)
@@ -158,20 +158,37 @@ namespace EasySaveV2
             }
         }
 
-        //Méthode pour mettre à jour la progress bar en fonction de son nom
+        //Method to update the progress bar based on its name
         public void EditProgressBarValue(string name, int newValue)
         {
-            //Parcourir la collection ProgressBarList
+            //Browse the ProgressBarList collection
             foreach (var element in ProgressBarList)
             {
-                //Vérifier si le nom correspond
+                //Check if the name matches
                 if (element.Name == name)
                 {
-                    //Mettre à jour la valeur de la barre de progression
+                    //Update progress bar value
                     element.ProgressBarValue = newValue;
-                    element.FormattedProgressBarValue = "" + newValue;
-                    //Sortir de la boucle car nous avons trouvé l'élément
+                    element.FormattedProgressBarValue = newValue + "%";
+                    //Exit the loop because we found the element
                     break;
+                }
+            }
+        }
+
+        public void EditMessageOnProgressBar(string name, string newValue)
+        {
+            newValue = model.getMessage(newValue);
+            foreach (var element in ProgressBarList)
+            {
+                if(element.Name == name)
+                {
+                    //Update bar text only if thread is not already killed
+                    if (!element.FormattedProgressBarValue.Contains("/!\\"))
+                    {
+                        element.FormattedProgressBarValue = newValue;
+                        break;
+                    }
                 }
             }
         }
@@ -251,7 +268,7 @@ namespace EasySaveV2
         {
             get
             {
-                return $"{_formattedValue}%";
+                return $"{_formattedValue}";
             }
             set
             {
@@ -271,15 +288,16 @@ namespace EasySaveV2
                 string part = name.Split(' ')[1];
                 if (!IsPlaying)
                 {
-                    // Logique de pause
-                    // Exemple : Pause la lecture
+                    //Pause logic
                     model.actionOnSave(int.Parse(part), "break");
+                    GlobalVariables.vm.EditMessageOnProgressBar(name, _progressBarValue + "% - {{ thread.paused }}");
+                    
                 }
                 else
                 {
-                    // Logique de démarrage
-                    // Exemple : Démarre la lecture
+                    //Boot logic
                     model.actionOnSave(int.Parse(part), "unbreak");
+                    GlobalVariables.vm.EditMessageOnProgressBar(name, _progressBarValue + "%");
                 }
             }
             IsPlaying = !IsPlaying;
@@ -287,11 +305,11 @@ namespace EasySaveV2
 
         private void ExecuteStopCommand(object parameter)
         {
-            // Logique d'arrêt (par exemple, arrêter complètement la lecture)
-            // Réinitialisez également la propriété IsPlaying si nécessaire
+            //Stop logic
             string name = parameter.ToString();
             string part = name.Split(' ')[1];
             model.actionOnSave(int.Parse(part), "kill");
+            GlobalVariables.vm.EditMessageOnProgressBar(name, "{{ thread.killed }}");
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
