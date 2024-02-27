@@ -17,6 +17,7 @@ namespace EasySaveV2
     //Global variables used
     public static class GlobalVariables
     {
+        public static ViewModel vm;
         public static List<string> dataTransfert = new List<string>();
         public static int saveThreadProcess = 0;
         public static Dictionary<int, Save> currentSaveProcess = new Dictionary<int, Save>();
@@ -66,12 +67,6 @@ namespace EasySaveV2
                     currentSave.run = false;
                 }
             }
-        }
-
-        //Method that sends data to the model
-        private void DiffuseData(string data)
-        {
-            GlobalVariables.dataTransfert.Add(data);
         }
 
         //Method that returns the list of files in a source folder
@@ -208,7 +203,7 @@ namespace EasySaveV2
         //Method that manages the backup of a source folder
         private void StartSave(string jobApp, string logFormat, bool differential, List<string> selectedCryptFileType, List<string> selectedPriorityFileType, double maxSameTimeSize, Barrier barrierPrioritaryFiles)
         {
-            //We initialize the mutex used to access our log and status files
+            //We initialize the mutex used to access our log and diffuse message
             mutexLog = new System.Threading.Mutex(false);
             //We start by defining the total number of files to save (We also remove unnecessary files to copy in sequential mode)
             //We retrieve the path to the backup source
@@ -368,8 +363,10 @@ namespace EasySaveV2
                     float fileTotal = this.total;
                     float pct = ((fileCopied / fileTotal) * 100);
                     int finalPct = (int)Math.Ceiling(pct);
-                    //We pass it on to the other classes
-                    DiffuseData("Save" + saveIndex + " : " + finalPct);
+
+                    //We pass it on to the other class
+                    GlobalVariables.vm.EditProgressBarValue("Save 1", finalPct);
+
                     //here, we place a mutex so that only one thread at a time can access the log file
                     mutexLog.WaitOne();
                     //If log format is json:
@@ -389,6 +386,7 @@ namespace EasySaveV2
 
                     //End of copying the file, we remove the size of the current file from our total transfer size
                     GlobalVariables.currentTransfertSize -= fileSizeInOctets;
+                    Thread.Sleep(1000);
                 } else
                 {
                     //If this is no longer the case, get out of the loop

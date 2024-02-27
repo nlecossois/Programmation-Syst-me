@@ -99,7 +99,7 @@
                             </Setter>
                         </Style>
                     </ScrollViewer.Resources>
-                    <ItemsControl ItemsSource="{Binding VotreCollection}" >
+                    <ItemsControl ItemsSource="{Binding ProgressBarList}" >
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
                                 <StackPanel Margin="5">

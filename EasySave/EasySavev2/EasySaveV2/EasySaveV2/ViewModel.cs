@@ -25,10 +25,25 @@ namespace EasySaveV2
         public string logType;
         public string copyType;
         public List<string> selectedScriptingTypes = new List<string>();
-        public ObservableCollection<MonElement> VotreCollection { get; set; }
+
+        private ObservableCollection<ProgressBarElement> _progressBarList;
+        public ObservableCollection<ProgressBarElement> ProgressBarList {
+            get
+            {
+                return _progressBarList;
+            }
+            set
+            {
+                if(_progressBarList != value)
+                {
+                    _progressBarList = value;
+                    OnPropertyChanged();
+                }
+                
+            }
+        }
         private string _inputText;
         private string _resultText;
-        private bool _processed = false;
 
         public string AppPrinterCalc
         {
@@ -111,17 +126,15 @@ namespace EasySaveV2
         {
             OpenSettingsCommand = new RelayCommand(OpenSettings);
             SaveWork = new RelayCommand(Click, CanExecute);
-            VotreCollection = new ObservableCollection<MonElement>
-            {
-            new MonElement { Name = "Save 1", ProgressBarValue = 90 },
-            new MonElement { Name = "Save 2", ProgressBarValue = 30 },
-            };
+            ProgressBarList = new ObservableCollection<ProgressBarElement> {};
+
+            
         }
 
         private bool CanExecute(object parameter)
         {
             //Logic to determine if the command can be executed
-            if(GlobalVariables.saveThreadProcess == 0 && _processed == false)
+            if(GlobalVariables.saveThreadProcess == 0)
             {
                 return true;
             } else
@@ -152,51 +165,47 @@ namespace EasySaveV2
                         ResultText = model.getMessage(finalUserPrompt);
                     } else
                     {
-                        _processed = true;
+                        GlobalVariables.dataTransfert.Clear();
+                        GlobalVariables.saveThreadProcess = 0;
                         //From here, this piece of code corresponds to the program frame
                         //We start by extracting the information into an array of integers and an integer
                         int amountOfSaves = model.extractUserPrompt(finalUserPrompt, 1);
                         List<int> listOfSaves = model.extractUserPrompt(finalUserPrompt);
                         //We perform the action to initialize and load the bars and return an empty ResultText.
-
                         ResultText = "";
-                        //- LoadProgressBar(amountOfSaves);
 
+                        //On vide d'abord la liste des progressbar
+                        ProgressBarList.Clear();
+
+                        //On affiche le bon nombre de barre de progression
+                        foreach (int index in listOfSaves)
+                        {
+                            ProgressBarList.Add(
+                            new ProgressBarElement { Name = "Save " + index, ProgressBarValue = 0 }
+                        );}
                         //We call the model method which will take care of threading each backup and managing the waiting list
                         model.SemaphoreWaitList(listOfSaves);
-
-                        //We activate the Thread which waits for commands coming from the model
-                        Thread messageGetter = new Thread(new ParameterizedThreadStart(listenData));
-                        messageGetter.Start("messageGetter");
+                        GlobalVariables.vm = this;
                     }
                 }
             }
         }
 
-        //Method that waits to receive an instruction from the Saves
-        private void listenData(Object messageGetter)
+        //Méthode pour mettre à jour la progress bar en fonction de son nom
+        public void EditProgressBarValue(string name, int newValue)
         {
-    
-            while (GlobalVariables.saveThreadProcess != 0)
+            //Parcourir la collection ProgressBarList
+            foreach (var element in ProgressBarList)
             {
-                if (GlobalVariables.dataTransfert.Count != 0)
+                //Vérifier si le nom correspond
+                if (element.Name == name)
                 {
-                    //Collecting the first order
-                    string cmd = GlobalVariables.dataTransfert[0];
-                    //Remove this command from the list
-                    GlobalVariables.dataTransfert.RemoveAt(0);
-
-                    //Action to be carried out upon receipt of the order
-                    
-                    
-                }
-                else
-                {
-                    Thread.Sleep(500);
+                    //Mettre à jour la valeur de la barre de progression
+                    element.ProgressBarValue = newValue;
+                    //Sortir de la boucle car nous avons trouvé l'élément
+                    break;
                 }
             }
-            _processed = false;
-
         }
 
 
@@ -233,14 +242,39 @@ namespace EasySaveV2
         }
 
     }
-    public class MonElement
+    public class ProgressBarElement
     {
         public string Name { get; set; }
-        public int ProgressBarValue { get; set; }
+
+        private int _progressBarValue;
+        public int ProgressBarValue {
+            get
+            {
+                return _progressBarValue;
+            }
+            set
+            {
+                if(_progressBarValue != value)
+                {
+                    _progressBarValue = value;
+                    MessageBoxResult displayer = MessageBox.Show("val:" + _progressBarValue, "Return from Model", MessageBoxButton.OK, MessageBoxImage.Information);
+                    OnPropertyChanged(nameof(ProgressBarValue));
+                }
+            }
+        }
+
         public string FormattedProgressBarValue
         {
             get { return $"{ProgressBarValue}%"; }
         }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
 
     }
 }
