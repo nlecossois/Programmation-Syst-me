@@ -6,7 +6,7 @@
         xmlns:iconPacks="http://mahapps.com/winfx/xaml/iconpacks"
         xmlns:local="clr-namespace:EasySaveV2"
         mc:Ignorable="d"
-        Title="EasySaveV2" Height="450" Width="400" MinWidth="410" MinHeight="480" Background="#D6D6D6">
+        Title="EasySaveV3" Height="450" Width="400" MinWidth="410" MinHeight="480" Background="#D6D6D6">
     <Grid VerticalAlignment="Top" Height="426">
         <!-- Partie en-tête -->
         <Grid Background="#2A2A2A" Margin="0,0,0,369">
