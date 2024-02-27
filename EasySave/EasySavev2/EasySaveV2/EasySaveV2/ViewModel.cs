@@ -67,25 +67,30 @@ namespace EasySaveV2
        
         private void ExecuteTogglePlayPauseCommand(object parameter)
         {
-                if (IsPlaying)
+            string name = parameter.ToString();
+            string part = name.Split(' ')[1];
+            if (IsPlaying)
                 {
                     if (parameter != null)
                     {
-                        string name = parameter.ToString();
-                    MessageBoxResult result = MessageBox.Show(name, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    
+                    
+                    model.actionOnSave(int.Parse(part), "break");
+
                     // Logique de pause
                     // Exemple : Pause la lecture
 
                 }
-                }
+            }
                 else
                 {
                     // Logique de démarrage
                     // Exemple : Démarre la lecture
                     if (parameter != null)
                     {
-                        string name = parameter.ToString();
-                        MessageBoxResult result = MessageBox.Show(name, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    
+
+                    model.actionOnSave(int.Parse(part), "unbreak");
                     // Logique de pause
                     // Exemple : Pause la lecture
 
