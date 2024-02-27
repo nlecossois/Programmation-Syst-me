@@ -106,7 +106,7 @@ namespace EasySaveV2
                 }
                 else
                 {
-                    //Récupération des sauvegardes à exécuter et du nombre total de sauvegarde
+                    //Retrieving the backups to run and the total number of backups
                     string finalUserPrompt = model.GetSaveData(formatUserPrompt);
                     if (finalUserPrompt.Contains("error"))
                     {
@@ -114,19 +114,19 @@ namespace EasySaveV2
                     } else
                     {
                         _processed = true;
-                        //A partir d'ici, ce morceau de code correspond à la trame du programme
-                        //On commence par extraire les informations en un tableau d'entier et un entier
+                        //From here, this piece of code corresponds to the program frame
+                        //We start by extracting the information into an array of integers and an integer
                         int amountOfSaves = model.extractUserPrompt(finalUserPrompt, 1);
                         List<int> listOfSaves = model.extractUserPrompt(finalUserPrompt);
-                        //On réalise l'action pour initialiser et charger les barres et renvoyer un ResultText vide.
+                        //We perform the action to initialize and load the bars and return an empty ResultText.
 
                         ResultText = "";
                         //- LoadProgressBar(amountOfSaves);
 
-                        //On appel la méthode du model qui va se charger de threader chaque sauvegarde et de gérer la liste d'attente
+                        //We call the model method which will take care of threading each backup and managing the waiting list
                         model.SemaphoreWaitList(listOfSaves);
 
-                        //On active le Thread qui attend les commandes en provenances du model
+                        //We activate the Thread which waits for commands coming from the model
                         Thread messageGetter = new Thread(new ParameterizedThreadStart(listenData));
                         messageGetter.Start("messageGetter");
                     }
@@ -134,7 +134,7 @@ namespace EasySaveV2
             }
         }
 
-        //Méthode qui attend de recevoir une instruction puis qui l'affiche sous forme de messageBox
+        //Method that waits to receive an instruction from the Saves
         private void listenData(Object messageGetter)
         {
     
@@ -142,15 +142,13 @@ namespace EasySaveV2
             {
                 if (GlobalVariables.dataTransfert.Count != 0)
                 {
-                    //Récupération de la première commande
+                    //Collecting the first order
                     string cmd = GlobalVariables.dataTransfert[0];
-                    //On retire cette commande de la liste
+                    //Remove this command from the list
                     GlobalVariables.dataTransfert.RemoveAt(0);
 
-                    //Action à réaliser en récéption de la commande
-                    MessageBoxResult displayer = MessageBox.Show(cmd, "Return from Model", MessageBoxButton.OK, MessageBoxImage.Information);
-
-                    //C'est ici que l'on appelera la mise a jour de la barre, des boutons etc en fonction de la commande exécutée
+                    //Action to be carried out upon receipt of the order
+                    
                     
                 }
                 else
@@ -158,7 +156,8 @@ namespace EasySaveV2
                     Thread.Sleep(500);
                 }
             }
-            
+            _processed = false;
+
         }
 
 

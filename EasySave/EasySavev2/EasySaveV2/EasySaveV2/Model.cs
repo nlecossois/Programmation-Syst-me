@@ -14,7 +14,7 @@ using System.Threading;
 
 namespace EasySaveV2
 {
-
+    //Global variables used
     public static class GlobalVariables
     {
         public static List<string> dataTransfert = new List<string>();
@@ -25,28 +25,34 @@ namespace EasySaveV2
 
     public class Save
     {
+        private static Mutex mutexLog;
         private int saveIndex;
         private bool isBreak;
         private bool run;
+        private int left;
         private int copied;
         private int total;
-        //Constructeur qui initialise l'index et appelle le démarrage de la sauvegarde
+        private int sizeLeft;
+        private int totalSize;
+
+        //Constructor that initializes the index and calls backup start
         public Save(int index, string jobApp, string logFormat, bool differential, List<string> selectedCryptFileType, List<string> selectedPriorityFileType, double maxSameTimeSize, Barrier barrierPrioritaryFiles)
         {
             this.saveIndex = index;
             this.isBreak = false;
             this.run = true;
-            this.copied = 0;
+            this.left = 0;
             this.total = 0;
-            //Ajout de l'objet à la liste des sauvegardes en cours
+            this.copied = 0;
+            //Adding the object to the list of current backups
             GlobalVariables.currentSaveProcess.Add(saveIndex, this);
             this.StartSave(jobApp, logFormat, differential, selectedCryptFileType, selectedPriorityFileType, maxSameTimeSize, barrierPrioritaryFiles);
         }
 
-        //Réalisation d'actions sur la sauvegardes
+        //Carrying out actions on backups
         public static void SaveInteract(int index, string action)
         {
-            //La méthode ne réalisera une action que si la sauvegarde est bien en cours
+            //The method will only perform an action if the backup is in progress
             if (GlobalVariables.currentSaveProcess.TryGetValue(index, out Save currentSave))
             {
                 if(action == "break")
@@ -62,13 +68,13 @@ namespace EasySaveV2
             }
         }
 
-        //Méthode qui envoie des données vers le model
+        //Method that sends data to the model
         private void DiffuseData(string data)
         {
             GlobalVariables.dataTransfert.Add(data);
         }
 
-        //Méthode qui renvoie la liste des fichiers dans un dossier source
+        //Method that returns the list of files in a source folder
         public List<string> GetAllFilesInFolder(string path)
         {
             List<string> inFolderFiles = new List<string>();
@@ -76,7 +82,7 @@ namespace EasySaveV2
             {
                 inFolderFiles.Add(file);
             }
-            //On ajoute recursivement les fichiers dans les sous-dossiers
+            //We recursively add the files to the subfolders
             foreach (string subfolder in Directory.GetDirectories(path))
             {
                 List<string> getted = GetAllFilesInFolder(subfolder);
@@ -88,7 +94,7 @@ namespace EasySaveV2
             return inFolderFiles;
         }
 
-        //Méthode qui compare deux tableaux et vérifie si il y à des corréspondances
+        //Method that compares two tables and checks if there are matches
         public List<string> CompareFiles(List<string> sourceFiles, List<string> destinationFiles, int saveIndex)
         {
             List<string> copyFiles = new List<string>();
@@ -105,18 +111,18 @@ namespace EasySaveV2
             return copyFiles;
         }
 
-        //Méthode qui renvoie la liste des fichiers prioritaires / non prioritaires en fonction des paramètres
+        //Method that returns the list of priority/non-priority files based on parameters
         static public List<string> sortByPriority(List<string> toCopyFiles, int type, List<string> selectedPriorityFileType)
         {
             List<string> resultList = new List<string>();
 
             foreach (string el in toCopyFiles)
             {
-                //On en récupère l'extension
+                //We recover the extension
                 string fileExtension = Path.GetExtension(el);
-                //On retire le "."
+                //Remove the "."
                 fileExtension = fileExtension.Substring(1);
-                //on vérifie si l'extension se trouve dans la liste
+                //we check if the extension is in the list
                 if (type == 1)
                 {
                     if (selectedPriorityFileType.Contains(fileExtension))
@@ -135,36 +141,101 @@ namespace EasySaveV2
             return resultList;
         }
 
+        //Method that returns subfolder paths based on the destination file path
+        private List<string> GetSubString(string destPath, string filePath)
+        {
+            destPath = destPath + "\\";
+            string tempPath = filePath.Replace("Destination" + this.saveIndex, "Destination");
+            //Split the string into pieces separated by "/"
+            string[] parts = tempPath.Split('\\');
+            //Process that only retrieves the part of the link that interests us
+            bool destPass = false;
+            List<string> listSubString = new List<string>();
+            foreach (string el in parts)
+            {
+                if (destPass == true)
+                {
+                    listSubString.Add(el);
+                }
+                else
+                {
+                    if (el == "Destination")
+                    {
+                        destPass = true;
+                    }
+                }
 
-        //Méthode qui gère la sauvegarde d'un dossier source
+            }
+            List<string> finalReturn = new List<string>();
+            if (listSubString.Count() > 0)
+            {
+                //We remove the last element (which is our file)
+                listSubString.RemoveAt(listSubString.Count - 1);
+
+                int i = 1;
+
+                //We will format the return values
+                foreach (string el in listSubString)
+                {
+                    if (i == 1)
+                    {
+                        finalReturn.Add(destPath + el);
+                    }
+                    else if (i == 2)
+                    {
+                        finalReturn.Add(destPath + listSubString[0] + "\\" + el);
+                    }
+                    else if (i == 3)
+                    {
+                        finalReturn.Add(destPath + listSubString[0] + "\\" + listSubString[1] + "\\" + el);
+                    }
+                    else if (i == 4)
+                    {
+                        finalReturn.Add(destPath + listSubString[0] + "\\" + listSubString[1] + "\\" + listSubString[2] + "\\" + el);
+                    }
+                    else if (i == 5)
+                    {
+                        finalReturn.Add(destPath + listSubString[0] + "\\" + listSubString[1] + "\\" + listSubString[2] + "\\" + listSubString[3] + "\\" + el);
+                    }
+
+                    i++;
+                }
+            }
+            return finalReturn;
+
+        }
+
+        //Method that manages the backup of a source folder
         private void StartSave(string jobApp, string logFormat, bool differential, List<string> selectedCryptFileType, List<string> selectedPriorityFileType, double maxSameTimeSize, Barrier barrierPrioritaryFiles)
         {
-            //On commence par définir le nombre total de fichiers à sauvegarder (On retire également les fichiers innutiles à copier en mode séquentiel)
-            //On récupère le chemin d'accès à la source de la sauvegarde
+            //We initialize the mutex used to access our log and status files
+            mutexLog = new System.Threading.Mutex(false);
+            //We start by defining the total number of files to save (We also remove unnecessary files to copy in sequential mode)
+            //We retrieve the path to the backup source
             string sourcePath = Model.GetParentDirectory(Model.GetFolderPath("Source" + saveIndex), "Source" + saveIndex);
-            //On récupère le chemin d'accès de la destination de la sauvegarde
+            //We retrieve the path of the backup destination
             string destinationPath = Model.GetParentDirectory(Model.GetFolderPath("Destination" + saveIndex), "Destination" + saveIndex);
-            //On initialise le tableau qui contiendra tous les fichiers qui devront être copiées
+            //We initialize the table which will contain all the files which must be copied
             List<string> toCopyFiles = new List<string>();
-            //On récupère la liste des fichiers dans la source
+            //We retrieve the list of files in the source
             List<string> sourceFiles = GetAllFilesInFolder(sourcePath);
-            //Si le mode est differentiel, alors on compare les deux listes et on retire les elements que l'on à pas besoin de copier
+            //If the mode is differential, then we compare the two lists and we remove the elements that we do not need to copy
             if (differential == true)
             {
-                //On récupère la liste des fichiers dans la destination
+                //We retrieve the list of files in the destination
                 List<string> destinationFiles = GetAllFilesInFolder(destinationPath);
-                //On réalise la comparaison entre les deux tableaux
+                //We make the comparison between the two tables
                 toCopyFiles = CompareFiles(sourceFiles, destinationFiles, saveIndex);
             }
             else
             {
                 toCopyFiles = sourceFiles;
             }
-            //Maintenant que l'on a la liste des fichiers à copier, on va la diviser en deux listes, les fichiers prioritaires et les autres fichiers
+            //Now that we have the list of files to copy, we will divide it into two lists, the priority files and the other files
             List<string> PrioritaryToCopyFiles = sortByPriority(toCopyFiles, 1, selectedPriorityFileType);
             List<string> NormalToCopyFiles = sortByPriority(toCopyFiles, 0, selectedPriorityFileType);
 
-            //On construit alors une nouvelle liste avec les fichiers prioritaires ne premier et les fichiers normaux ensuite
+            //We then build a new list with the priority files first and the normal files afterwards.
             List<string> filesToCopy = new List<string>();
             foreach (string el in PrioritaryToCopyFiles)
             {
@@ -175,72 +246,157 @@ namespace EasySaveV2
                 filesToCopy.Add(el);
             }
 
-            //Avant de lancer la copie des fichiers, on va envoyer une instruction pour initialiser la barre de chargement
-            //DiffuseData("{ " + saveIndex + " } -> [state] - (0)");
-            //DiffuseData("{ " + saveIndex + " } -> [play]");
-
-            //On enregistre le nombre total de fichier à crypter
+            //We record the total number of files to encrypt
             this.total = filesToCopy.Count();
+            this.left = this.total;
 
-            //Pour chaque fichier de notre liste
-            foreach(string currentFile in filesToCopy)
+            //We record the total size of the files to copy
+            foreach(string path in filesToCopy)
             {
-                //On contrôle si la sauvegarde est toujours active
-                if(this.run == true)
+                string fileName = Path.GetFileName(path);
+                this.totalSize += fileName.Length;
+            }
+
+            this.sizeLeft = this.totalSize;
+
+            //For each file in our list
+            foreach (string currentFile in filesToCopy)
+            {
+                //We check if the backup is still active
+                if (this.run == true)
                 {
-                    //On contrôle si la sauvegarde est en pause : attendre 1 seconde puis ré-essayer
-                    while(this.isBreak == true)
+                    //We check if the backup is paused: wait 1 second then try again
+                    while (this.isBreak == true)
                     {
                         Thread.Sleep(1000);
                     }
-                    //On contrôle si l'application est ouverte ou non, si c'est le cas on attend une seconde et demi avant un nouvel essaie
+                    //We check whether the business application is open or not, if so we wait a second and a half before trying again
                     while (Model.IsProcessOpen(jobApp))
                     {
                         Thread.Sleep(1500);
                     }
-                    //On contrôle si le fichier que l'on s'apprête à copier est prioritaire
+                    //We check if the file we are about to copy has priority
                     if (!PrioritaryToCopyFiles.Contains(currentFile))
                     {
-                        barrierPrioritaryFiles.SignalAndWait();
+                        //We wait for the other threads
+                        barrierPrioritaryFiles.Dispose();
                     }
-                    //On contrôle si la taille totale maximale n'est pas dépassé avant de lancer la copie
-                    //On commence par récuperer la taille du fichier
+                    //We check if the maximum total size is not exceeded before starting the copy
+                    //We start by getting the size of the file
                     FileInfo currentFileInfo = new FileInfo(currentFile);
                     long fileSizeInOctets = currentFileInfo.Length;
-                    //On contrôle que la taille maximum autorisée ne soit pas dépassé, sinon on attend 1 seconde avec un nouvel essaie
-                    while(((fileSizeInOctets + GlobalVariables.currentTransfertSize) > maxSameTimeSize) && (GlobalVariables.currentTransfertSize != 0))
+                    //We check that the maximum authorized size is not exceeded, otherwise we wait 1 second with a new try
+                    while (((fileSizeInOctets + GlobalVariables.currentTransfertSize) > maxSameTimeSize) && (GlobalVariables.currentTransfertSize != 0))
                     {
                         Thread.Sleep(1000);
                     }
-                    //Si la taille simultanée le permet ou est nulle, on ajoute la taille du fichier courant a notre taille totale de transfert
+                    //If the simultaneous size allows it or is zero, we add the size of the current file to our total transfer size
                     GlobalVariables.currentTransfertSize += fileSizeInOctets;
-                    //On récupère l'adresse de la destination par rapport à l'adresse source
+                    //We retrieve the destination address relative to the source address
                     string destPath = sourcePath.Replace("Source", "Destination");
-                    //On créé le dossier de déstination s'il n'existe pas déjà
+                    //We create the destination folder if it does not already exist
                     if (!Directory.Exists(destPath))
                     {
                         Directory.CreateDirectory(destPath);
                     }
 
-                    
-                    //On vérifie si il y a un ou plusieurs sous-dossier : on les crées si nécessaires
+                    //We retrieve the list of subfolders
+                    string destFile = currentFile.Replace("Source", "Destination");
+                    List<string> subFoldersPath = GetSubString(destPath, destFile);
 
-                    //Fin de copie du fichier, on retire la taille du fichier courant de notre taille totale de transfert
+                    //We will, if necessary, create all the subfolders
+                    foreach (string path in subFoldersPath)
+                    {
+                        if (!Directory.Exists(path))
+                        {
+                            Directory.CreateDirectory(path);
+                        }
+                    }
+
+                    //We now start the copy timer
+                    Stopwatch copyTime = new Stopwatch();
+                    Stopwatch cryptTime = new Stopwatch();
+                    copyTime.Start();
+                    //We actually copy the file
+                    File.Copy(currentFile, destFile, true);
+                    //We stop the clock
+                    copyTime.Stop();
+                    //We get the size of the file
+                    string fileName = Path.GetFileName(currentFile);
+                    int fileSize = fileName.Length;
+                    this.left--;
+                    //We manage file encryption if necessary
+                    string fileExtension = Path.GetExtension(fileName);
+                    fileExtension = fileExtension.TrimStart('.');
+
+                    this.sizeLeft -= fileSize;
+
+                    //We initialize the variable which contains the file encryption information
+                    string encryptTime;
+
+                    if (selectedCryptFileType.Contains(fileExtension))
+                    {
+                        //If the file extension matches and it must be encrypted:
+                        //Recovering the parent folder
+                        string parentDirectory = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName;
+                        //Recovery of the CryptoSoft executable
+                        string cryptoSoftPath = Path.Combine(parentDirectory, $"CryptoSoft/CryptoSoft.exe");
+                        if (!File.Exists(cryptoSoftPath))
+                        {
+                            //If the CryptoSoft executable is not found.
+                            encryptTime = "-1 : CryptoSoft.exe not found!";
+                        }
+                        else
+                        {
+                            //File encryption
+                            cryptTime.Start();
+                            ProcessStartInfo startInfo = new ProcessStartInfo();
+                            startInfo.FileName = cryptoSoftPath;
+                            startInfo.Arguments = $"\"{destFile}\"";
+                            Process.Start(startInfo);
+                            cryptTime.Stop();
+                            encryptTime = cryptTime.ElapsedMilliseconds + " ms";
+                        }
+                    } else
+                    {
+                        encryptTime = "0";
+                    }
+                    this.copied++;
+                    //We broadcast to the ViewModel and the Model that the state of a backup has evolved
+                    //We calculate the percentage of progress of the backup
+                    float fileCopied = this.copied;
+                    float fileTotal = this.total;
+                    float pct = ((fileCopied / fileTotal) * 100);
+                    int finalPct = (int)Math.Ceiling(pct);
+                    //We pass it on to the other classes
+                    DiffuseData("Save" + saveIndex + " : " + finalPct);
+                    //here, we place a mutex so that only one thread at a time can access the log file
+                    mutexLog.WaitOne();
+                    //If log format is json:
+                    if (logFormat == "JSON")
+                    {
+                        //We format the content of the log
+                        JsonElement logContent = Model.SerializeContent("Save" + saveIndex, fileName, sourcePath, destPath, fileSize, copyTime.ElapsedMilliseconds, encryptTime);
+                        //We enter it in the daily log file
+                        Model.WriteContentLog(logContent);
+                    }
+                    else if (logFormat == "XML")
+                    {
+                        //In the case of the log format is xml
+                        Model.WriteXmlLog("Save" + saveIndex, fileName, sourcePath, destPath, fileSize, copyTime.ElapsedMilliseconds, encryptTime);
+                    }
+                    mutexLog.ReleaseMutex();
+
+                    //End of copying the file, we remove the size of the current file from our total transfer size
                     GlobalVariables.currentTransfertSize -= fileSizeInOctets;
-
-                    
                 } else
                 {
-                    //Si ce n'est plus le cas, sors de la boucle
+                    //If this is no longer the case, get out of the loop
                     break;
                 }
             }
-            //Attendre que tous les threads soient terminées
-            barrierPrioritaryFiles.SignalAndWait();
         }
     }
-
-
 
     class Model
     {
@@ -262,40 +418,40 @@ namespace EasySaveV2
         private delegate void DELG(object state);
         private static System.Threading.Semaphore semaphore;
 
-        //Méthode qui permet de gérer une liste d'attente entre toutes les sauvegardes qui doivent être créers.
+        //Method which allows you to manage a waiting list between all the backups which must be created.
         public void SemaphoreWaitList(List<int> listOfSaves)
         {
             Barrier barrierPrioritaryFiles = new Barrier(participantCount: listOfSaves.Count());
-            //Réinitialisation de la taille de transfert en cours (au cas où il ne se serait pas remis de lui-même à 0)
+            //Resetting the current transfer size (in case it has not reset itself to 0)
             GlobalVariables.currentTransfertSize = 0;
-            //Déclaration du sémaphore
+            //Semaphore declaration
             semaphore = new System.Threading.Semaphore(maxSameTimeSaves, maxSameTimeSaves);
             DELG waitList = (state) =>
             {
                 GlobalVariables.saveThreadProcess++;
                 semaphore.WaitOne();
                 int saveIndex = (int)state;
-                //Lancement de la sauvegarde en cours
+                //Starting backup
                 Save save = new Save(saveIndex, jobApp, logFormat, differential, selectedCryptFileType, selectedCryptFileType, maxSameTimeSize, barrierPrioritaryFiles);
-                //On retire l'objet de notre liste d'objet en cours d'exécution
+                //We remove the object from our running object list
                 GlobalVariables.currentSaveProcess.Remove(saveIndex);
-                //Libération d'une place dans la liste d'attente
+                //Freeing up a place in the waiting list
                 GlobalVariables.saveThreadProcess--;
                 semaphore.Release();
                 
             };
-            //Pour chaque sauvegarde
+            //For each backup : declaration
             foreach (int index in listOfSaves)
             {
-                //Déclaration d'un nouveau thread
+                //Declaring a new thread
                 System.Threading.Thread t = new System.Threading.Thread(waitList.Invoke);
-                //Démarage du thread
+                //Starting the thread
                 t.Start(((object)(index)));
 
             }
         }
 
-        //Méthode permettant de réaliser une action sur une sauvegarde
+        //Method for performing an action on a backup
         public void actionOnSave(int index, string action)
         {
             Save.SaveInteract(index, action);
@@ -419,49 +575,49 @@ namespace EasySaveV2
             return formatedData;
         }
 
-        //Méthode utilisée pour contrôler la liste des sauvegardes à exécuter et le nombre de lignes à afficher.
+        //Method used to control the list of backups to run and the number of lines to display.
         public string GetSaveData(string formatUserPrompt)
         {
-            //On transforme en liste
+            //We transform into a list
             List<int> promptList = StringToList(formatUserPrompt);
-            //On vérifie qu'il n'y a pas eu de duplication de valeurs dans le tableau
+            //We check that there has been no duplication of values ​​in the table
             HashSet<int> unitPromptList = new HashSet<int>(promptList);
             promptList = new List<int>(unitPromptList);
-            //On trie le tout par ordre croissant
+            //We sort everything in ascending order
             promptList.Sort();
-            //On défini la liste de résultat
+            //We define the result list
             List<int> finalPromptList = new List<int>();
-            //On contrôle si le dossier existe bel et bien
+            //We check if the file actually exists
             foreach (int i in promptList)
             {
-                //On récupère le chemin du dossier
+                //We retrieve the folder path
                 string sourcePath = GetParentDirectory(GetFolderPath("Source" + i), "Source" + i);
-                //On récupère le nombre total de fichiers dans la source
+                //We retrieve the total number of files in the source
                 int totalFiles = getAllFilesInSave(sourcePath);
-                //On contrôle si il existe et que le dossier contient bien des fichiers
+                //We check if it exists and that the folder contains files
                 if (sourcePath != null && totalFiles != 0)
                 {
-                    //Si il est nul, on retire cet element de la liste
+                    //If it is zero, we remove this element from the list
                     finalPromptList.Add(i);
                 }
-                //On contrôle si le dossier parent contient des fichiers
+                //We check if the parent folder contains files
             }
-            //On compte le nombre des lignes à afficher
+            //Count the number of lines to display
             int lines = finalPromptList.Count();
             if(lines > 0) {
-                //On formate le résultat final
+                //We format the final result
                 string allSaves = string.Join(",", finalPromptList);
                 formatUserPrompt = allSaves + "-" + lines;
                 
             } else
             {
-                //Si il n'y a pas de fichiers : erreur.
+                //If there are no files: error.
                 formatUserPrompt = "{{ error.noSave }}";
             }
             return formatUserPrompt;
         }
 
-        //Méthode utilisée pour récuperer le nombre de fichiers dans un dossier de sauvegarde.
+        //Method used to retrieve the number of files in a backup folder.
         private int getAllFilesInSave(string sourcePath)
         {
             try
@@ -488,13 +644,13 @@ namespace EasySaveV2
             return totalFile;
         }
 
-        //Méthode qui renvoie la liste des sauvegardes à exécuter
+        //Method that returns the list of backups to run
         public List<int> extractUserPrompt(string data)
         {
             string[] parts = data.Split('-');
             string[] values = parts[0].Split(",");
             List<int> result = new List<int>();
-            //On ajoute les éléments dans la liste
+            //We add the elements to the list
             foreach (string val in values)
             {
                 result.Add(int.Parse(val));
@@ -502,7 +658,7 @@ namespace EasySaveV2
             return result; 
         }
 
-        //Surcharge de la méthode ci-dessus qui renvoie le nombre de lignes à afficher
+        //Overloading the above method which returns the number of rows to display
         public int extractUserPrompt(string data, int dataType)
         {
             string[] parts = data.Split('-');
@@ -582,50 +738,7 @@ namespace EasySaveV2
             return message;
         }
 
-
-        public string SaveFolder(List<int> workOfSave)
-        {
-            sourceFolderList.Clear();
-            // Get all file Info for State File
-            foreach (int index in workOfSave)
-            {
-                string sourcePath = GetParentDirectory(GetFolderPath("Source" + index), "Source" + index);
-                if (sourcePath != null)
-                {
-                    getAllFileInfo(sourcePath);
-                }
-            }
-            fileLeft = totalFile;
-            sizeLeft = totalSize;
-            // Add all file in new folder
-            foreach (int index in workOfSave)
-            {
-                allSaveFileNames.Clear();
-                string sourcePath = GetParentDirectory(GetFolderPath("Source" + index), "Source" + index);
-                // Create Destination folder in the same folder of source folder if Destination folder are not found
-                createFolder(sourcePath, index);
-                string destinationPath = GetParentDirectory(GetFolderPath("Destination" + index), "Destination" + index);
-                if (sourcePath != null)
-                {
-                    // Add files of the target source folder
-                    addFiles(sourcePath, destinationPath, index);
-                    // Add folder of the target source folder
-                    addFolders(sourcePath, destinationPath, index);
-                    if (allSaveFileNames.Count() > 0)
-                    {
-                        textOutput += "{{ message.saver.files }}" + index + " : " + Environment.NewLine + string.Join(Environment.NewLine, allSaveFileNames) + " {{ message.saver.copied }}" + Environment.NewLine;
-                    }
-
-                    else
-                    {
-                        textOutput += "{{ message.saver.noFile }}" + index + Environment.NewLine;
-                    }
-
-                }
-            }
-            return textOutput;
-        }
-
+        //Method to recover all files in a source folder
         public int getAllFileInfo(string path)
         {
             string[] fileInFolder = Directory.GetFiles(path);
@@ -644,8 +757,9 @@ namespace EasySaveV2
             }
             return totalFile;
         }
+
         //Method that formats log content
-        private JsonElement SerializeContent(string SaveName, string FileName, string SourcePath, string DestinationPath, long FileSize, long TransferTime, string CryptTime, bool etat = false)
+        public static JsonElement SerializeContent(string SaveName, string FileName, string SourcePath, string DestinationPath, long FileSize, long TransferTime, string CryptTime, bool etat = false, int fileLeft = 0, int totalFile = 0, int sizeLeft = 0, int totalSize = 0)
         {
             using (var stream = new System.IO.MemoryStream())
             {
@@ -668,8 +782,7 @@ namespace EasySaveV2
                     }
                     else
                     {
-                        fileLeft -= 1;
-                        sizeLeft -= FileSize;
+
                         jsonWriter.WriteNumber("File To Copy", totalFile);
                         jsonWriter.WriteNumber("File Left", fileLeft);
                         jsonWriter.WriteNumber("File Size Left To Copy", sizeLeft);
@@ -704,7 +817,7 @@ namespace EasySaveV2
         }
 
         //Method that writes to a log file
-        private void WriteContentLog(JsonElement log)
+        public static void WriteContentLog(JsonElement log)
         {
             //We retrieve the address of the log file
             string parentDirectory = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName;
@@ -727,7 +840,7 @@ namespace EasySaveV2
 
 
         //Method the writes to an xml log file
-        private void WriteXmlLog(string SaveName, string FileName, string SourcePath, string DestinationPath, long FileSize, long TransferTime, string CryptTime)
+        public static void WriteXmlLog(string SaveName, string FileName, string SourcePath, string DestinationPath, long FileSize, long TransferTime, string CryptTime)
         {
             //We get the address of the file
             string parentDirectory = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName;
@@ -803,27 +916,6 @@ namespace EasySaveV2
 
         }
 
-        private void WriteContentState(JsonElement state)
-        {
-            //We retrieve the address of the log file
-            string parentDirectory = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName;
-            string stateFileName = Path.Combine(parentDirectory, $"log/state.json");
-
-            //If the day's log file does not exist: we create it
-            if (!File.Exists(stateFileName))
-            {
-                using (StreamWriter sw = new StreamWriter(stateFileName))
-                {
-                    sw.Close();
-                }
-            }
-
-            //We format the content of the log to register
-            string stateContent = JsonSerializer.Serialize(state, new JsonSerializerOptions { WriteIndented = true });
-            //We write the log in the log file
-            File.WriteAllText(stateFileName, stateContent);
-        }
-
         //Method that determines whether the business process is active or not
         public static bool IsProcessOpen(string jobApp)
         {
@@ -851,139 +943,6 @@ namespace EasySaveV2
             jobApp = currentJobApp;
         }
 
-        public void addFiles(string sourcePath, string destinationPath, int index)
-        {
-            string[] allFiles = Directory.GetFiles(sourcePath);
-            foreach (string filePath in allFiles)
-            {
-                //We check that the business application is not launched
-                if (IsProcessOpen(jobApp))
-                {
-                    //We wait for the process to be closed
-                    while (IsProcessOpen(jobApp))
-                    {
-                        //Wait 500ms before running again
-                        Thread.Sleep(500);
-                    }
-                } 
-                addFile(destinationPath, filePath, sourcePath, index);
-            }
-        }
-
-        public void addFile(string destinationPath, string filePath, string sourcePath, int index)
-        {
-            FileInfo fileSize = new FileInfo(filePath);
-            string fileName = Path.GetFileName(filePath);
-            string fileDestinationPath = Path.Combine(destinationPath, fileName);
-            Stopwatch stopwatch = new Stopwatch();
-            Stopwatch cryptTime = new Stopwatch();
-            try
-            {
-                bool copy = false;
-                //We control the type of backup
-                if (differential == false)
-                {
-                    //If the backup is complete: we save the file whatever happens
-                    copy = true;
-                }
-                else
-                {
-                    //If the backup is differential: we check whether it is necessary to copy the file
-                    //We check if the destination exists
-                    if (File.Exists(fileDestinationPath))
-                    {
-                        //We warn the user that the file has not been copied
-                        textOutput += "{{ error.differential.folder }}" + fileName + "{{ error.differential.content }}" + Environment.NewLine;
-                    }
-                    else
-                    {
-                        //If the source does not exist: We copy the file
-                        copy = true;
-                    }
-
-                }
-                if (copy == true)
-                {
-                    //We start recording the copy time
-                    stopwatch.Start();
-                    //We copy the file
-                    File.Copy(filePath, fileDestinationPath, true);
-                    allSaveFileNames.Add(fileName);
-                    //We stop the clock
-                    stopwatch.Stop();
-                    //We save the size of the file
-                    totalSize += fileName.Length;
-
-
-
-
-                    //We initialize the variable which contains the file encryption information
-                    string encryptTime;
-                    //We check if the file must be encrypted in relation to its extension
-                    //We start by determining the extension of our file
-                    string fileExtension = Path.GetExtension(fileName);
-                    //We remove the point of the extension
-                    fileExtension = fileExtension.TrimStart('.');
-
-                    //We check if our list containing all the selected extensions contains the extension of the current file
-                    if (selectedCryptFileType.Contains(fileExtension))
-                    {
-                        //If the file extension matches and it must be encrypted:
-                        //Recovering the parent folder
-                        string parentDirectory = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName;
-                        //Recovery of the CryptoSoft executable
-                        string cryptoSoftPath = Path.Combine(parentDirectory, $"CryptoSoft/CryptoSoft.exe");
-                        if (!File.Exists(cryptoSoftPath))
-                        {
-                            //If the CryptoSoft executable is not found.
-                            encryptTime = getMessage("{{ error.encrypt }}");
-                        } else
-                        {
-                            //Encryptage du fichier
-                            cryptTime.Start();
-                            ProcessStartInfo startInfo = new ProcessStartInfo();
-                            startInfo.FileName = cryptoSoftPath;
-                            startInfo.Arguments = $"\"{fileDestinationPath}\"";
-                            Process.Start(startInfo);
-                            cryptTime.Stop();
-                            textOutput += "{{ message.encrypt.file }}" + fileName + "{{ message.encrypt.success }}" + Environment.NewLine;
-
-                            encryptTime = cryptTime.ElapsedMilliseconds + " ms";
-                        }
-                            
-                    } else
-                    {
-                        //Otherwise: We insert in the logs that the file does not need to be encrypted
-                        encryptTime = "0";
-                    }
-
-
-                    //We format the content of the state
-                    JsonElement stateContent = SerializeContent("Save" + index, fileName, sourcePath, destinationPath, fileSize.Length, stopwatch.ElapsedMilliseconds, encryptTime, true);
-                    //We enter it in state file
-                    WriteContentState(stateContent);
-
-                    //If log format is json:
-                    if (logFormat == "JSON")
-                    {
-                        //We format the content of the log
-                        JsonElement logContent = SerializeContent("Save" + index, fileName, sourcePath, destinationPath, fileSize.Length, stopwatch.ElapsedMilliseconds, encryptTime);
-                        //We enter it in the daily log file
-                        WriteContentLog(logContent);
-                    }
-                    else if (logFormat == "XML")
-                    {
-                        //In the case of the log format is xml
-                        WriteXmlLog("Save" + index, fileName, sourcePath, destinationPath, fileSize.Length, stopwatch.ElapsedMilliseconds, encryptTime);
-                    }
-                }
-
-            }
-            catch (Exception err)
-            {
-                textOutput += err.Message + Environment.NewLine;
-            }
-        }
 
         //setter for the format of the log file
         public void setLogFormat(string format)
@@ -991,35 +950,15 @@ namespace EasySaveV2
             logFormat = format.ToUpper();
         }
 
-        public void addFolders(string sourcePath, string destinationPath, int index)
-        {
-            string[] subDirectories = GetSubDirectories(sourcePath);
-            foreach (string folder in subDirectories)
-            {
-                string newPath = addFolder(destinationPath, folder);
-                addFiles(folder, newPath, index);
-                addFolders(folder, newPath, index);
-            }
-        }
-
-        public string addFolder(string destinationPath, string folderPath)
-        {
-            string newPath = Path.Combine(destinationPath, Path.GetFileName(folderPath));
-            if (!File.Exists(newPath))
-            {
-                Directory.CreateDirectory(newPath);
-            }
-            return newPath;
-        }
-
+        //Method to return the path to the source file
         public static string GetFolderPath(string folderName)
         {
             string path = null;
-            // Get path user desktop folders
+            //Get path user desktop folders
             string userFolder = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) + "\\Desktop";
-            // Get all folders in the desktop folder
+            //Get all folders in the desktop folder
             string[] allFolders = Directory.GetDirectories(userFolder, "*", SearchOption.AllDirectories);
-            // Search for the folder with the specified name
+            //Search for the folder with the specified name
             foreach (string i in allFolders)
             {
                 if (i.Contains(folderName))
@@ -1030,6 +969,7 @@ namespace EasySaveV2
             return path;
         }
 
+        //Method returning parent folder of source folder
         public static string GetParentDirectory(string path, string name)
         {
             string parentDir = path;
@@ -1044,45 +984,20 @@ namespace EasySaveV2
             return parentDir;
         }
 
-        public static string[] GetSubDirectories(string parentFolderPath)
-        {
-            // Use Directory.GetDirectories to get the list of folders
-            string[] subDirectories = Directory.GetDirectories(parentFolderPath);
-
-            return subDirectories;
-        }
-
-        public static string SearchFolderInDrives(string folderName)
-        {
-            DriveInfo[] drives = DriveInfo.GetDrives();
-
-            foreach (DriveInfo drive in drives)
-            {
-                if (drive.DriveType == DriveType.Fixed || drive.DriveType == DriveType.Removable || drive.DriveType == DriveType.Network)
-                {
-                    string foundPath = SearchFolderInDrive(folderName, drive.RootDirectory);
-                    if (!string.IsNullOrEmpty(foundPath))
-                    {
-                        return foundPath; //  Stop search if folder found
-                    }
-                }
-            }
-            return string.Empty; // No folder found
-        }
-
+        //Method for finding the location of source folders regardless of the computer
         public static string SearchFolderInDrive(string folderName, DirectoryInfo currentDirectory)
         {
             try
             {
-                // Search in current directory
+                //Search in current directory
                 string[] matchingDirectories = Directory.GetDirectories(currentDirectory.FullName, folderName, SearchOption.TopDirectoryOnly);
 
                 if (matchingDirectories.Length > 0)
                 {
-                    return matchingDirectories[0]; // Return the first folder found
+                    return matchingDirectories[0]; //Return the first folder found
                 }
 
-                // Recursive search in subdirectories
+                //Recursive search in subdirectories
                 DirectoryInfo[] subDirectories = currentDirectory.GetDirectories();
                 foreach (DirectoryInfo subDirectory in subDirectories)
                 {
@@ -1090,28 +1005,16 @@ namespace EasySaveV2
 
                     if (!string.IsNullOrEmpty(foundPath))
                     {
-                        return foundPath; // Stop search if folder found
+                        return foundPath; //Stop search if folder found
                     }
                 }
             }
             catch (UnauthorizedAccessException)
             {
             }
-            return string.Empty; // No folder found
+            return string.Empty; //No folder found
         }
 
-        public void createFolder(string path, int index)
-        {
-            try
-            {
-                Directory.CreateDirectory(Path.Combine(Path.GetDirectoryName(path), "Destination" + index));
-            }
-            catch (ArgumentNullException)
-            {
-                sourceFolderList.Add("Source" + index);
-                textOutput = "{{ message.saver.folder }} " + string.Join(", ", sourceFolderList) + " {{ message.saver.notFound }}" + Environment.NewLine;
-            }
-        }
     }
 
     public class RelayCommand : ICommand
