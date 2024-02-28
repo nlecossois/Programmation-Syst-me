@@ -58,7 +58,7 @@ namespace EasySaveV2
         }
         public ViewModel()
         {
-            //Initialisation 
+            //Initialization 
             GlobalVariables.vm = this;
             setResultText("{{ app.printer.waitForServer }}");
             ProgressBarList = new ObservableCollection<ProgressBarElement> {};
@@ -72,7 +72,7 @@ namespace EasySaveV2
         }
 
 
-        //Methode pour renvoyer la valeur d'une progress bar
+        //Method to return the value of a progress bar
         public int getProgressBarValue(string name)
         {
             int rt = 0;
@@ -92,7 +92,7 @@ namespace EasySaveV2
             return rt;
         }
 
-        //Méthode pour mettre en play/pause une progress bar
+        //Method to play/pause a progress bar
         public void EditProgressBarState(string name, bool state)
         {
             //Browse the ProgressBarList collection
