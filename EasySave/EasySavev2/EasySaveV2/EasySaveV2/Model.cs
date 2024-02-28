@@ -814,7 +814,7 @@ namespace EasySaveV2
         }
 
         //Method that formats log content
-        public static JsonElement SerializeContent(string SaveName, string FileName, string SourcePath, string DestinationPath, long FileSize, long TransferTime, string CryptTime, bool etat = false, int fileLeft = 0, int totalFile = 0, int sizeLeft = 0, int totalSize = 0)
+        public static JsonElement SerializeContent(string SaveName, string FileName, string SourcePath, string DestinationPath, long FileSize, long TransferTime, string CryptTime, bool state = false, int fileLeft = 0, int totalFile = 0, int sizeLeft = 0, int totalSize = 0)
         {
             using (var stream = new System.IO.MemoryStream())
             {
@@ -828,7 +828,7 @@ namespace EasySaveV2
                     jsonWriter.WriteString("Save", SaveName);
                     jsonWriter.WriteString("Source Path", SourcePath);
                     jsonWriter.WriteString("Destination Path", DestinationPath);
-                    if (!etat)
+                    if (!state)
                     {
                         jsonWriter.WriteString("File", FileName);
                         jsonWriter.WriteNumber("File Size", FileSize);
