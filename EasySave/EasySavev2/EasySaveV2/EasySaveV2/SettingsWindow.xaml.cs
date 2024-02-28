@@ -67,13 +67,10 @@ namespace EasySaveV2
         public string AppPrintJobApp { get; set; }
         public string AppPrintSaveParam { get; set; }
         public string AppPrintCancelParam { get; set; }
-
+        public string AppPrintPrioType { get; set; }
         public string AppPrintCopyType { get; set; }
-
         public string AppPrintMaxTransfert { get; set; }
-
         public string CurrentJobApp { get; set; }
-
         public string CurrentMaxTransfert { get; set; }
 
 
@@ -167,6 +164,7 @@ namespace EasySaveV2
             AppPrintCancelParam = viewModel.getMessageFromParameter("{{ app.printer.cancelParam }}");
             AppPrintCopyType = viewModel.getMessageFromParameter("{{ app.printer.copyType }}");
             AppPrintMaxTransfert = viewModel.getMessageFromParameter("{{ app.printer.maxTransfert }}");
+            AppPrintPrioType = viewModel.getMessageFromParameter("{{ app.printer.prioritaryType }}");
             logType.Add("Json");
             logType.Add("Xml");
             copyType.Add(viewModel.getMessageFromParameter("{{ printer.copyType.complete }}"));

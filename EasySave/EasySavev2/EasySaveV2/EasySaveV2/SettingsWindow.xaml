@@ -96,7 +96,7 @@
                                 </DataTemplate>
                             </ListBox.ItemTemplate>
                         </ListBox>
-                        <TextBlock Text="{Binding AppPrintCryptType}" Margin="0,10,0,5"/> <!--A CHANGER !!!!!!!!!-->
+                        <TextBlock Text="{Binding AppPrintPrioType}" Margin="0,10,0,5"/> 
                         <ListBox x:Name="docType" Width="200" Height="180" SelectionMode="Extended" HorizontalAlignment="Center" Margin="10">
                             <ListBox.Style>
                                 <Style TargetType="ListBox">

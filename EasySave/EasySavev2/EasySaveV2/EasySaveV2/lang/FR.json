@@ -2,12 +2,14 @@
 	"app.printer.calc": "Sauvegarder",
 	"app.printer.cancelParam": "Annuler",
 	"app.printer.copyType": "Sélectionnez le type de sauvegarde des fichiers:",
-	"app.printer.cryptType": "Sélectionnez le type des fichiers à crypter:",
+	"app.printer.cryptType": "Sélectionnez les typse des fichiers à crypter:",
 	"app.printer.jobApp": "Entrez le nom du logiciel métier:",
 	"app.printer.language": "Choisissez une langue:",
 	"app.printer.logType": "Sélectionnez le format du fichier de journalisation:",
 	"app.printer.saveParam": "Enregistrer",
 	"app.printer.maxTransfert": "Saisissez la taille maximum de transfert (o):",
+	"app.printer.noData": "Aucune donnée à afficher",
+	"app.printer.prioritaryType": "Sélectionnez les types de fichiers prioritaires:",
 
 
 	"error.fillSyntax": "Erreur : La syntaxe pour utiliser '-' doit contenir deux nombres compris entre 1 et 5 tel que le premier est inférieur au second.",

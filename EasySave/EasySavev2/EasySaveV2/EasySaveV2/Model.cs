@@ -438,6 +438,7 @@ namespace EasySaveV2
         private string logFormat = "JSON";
         private bool differential = false;
         private List<string> selectedCryptFileType = new List<string>();
+        private List<string> selectedPriorityFileType = new List<string>();
         private int maxSameTimeSaves = 64;
         private int maxSameTimeSize = 50000;
         private delegate void DELG(object state);
@@ -457,7 +458,7 @@ namespace EasySaveV2
                 semaphore.WaitOne();
                 int saveIndex = (int)state;
                 //Starting backup
-                Save save = new Save(saveIndex, jobApp, logFormat, differential, selectedCryptFileType, selectedCryptFileType, maxSameTimeSize, barrierPrioritaryFiles);
+                Save save = new Save(saveIndex, jobApp, logFormat, differential, selectedCryptFileType, selectedPriorityFileType, maxSameTimeSize, barrierPrioritaryFiles);
                 //We remove the object from our running object list
                 while (true)
                 {
@@ -516,6 +517,12 @@ namespace EasySaveV2
         public void setEncryptFileType(List<string> extensionsList)
         {
             selectedCryptFileType = extensionsList;
+        }
+
+        //Method used to define file types that will be prioritary
+        public void setPriorityType(List<string> extensionsList)
+        {
+            selectedPriorityFileType = extensionsList;
         }
 
         //Method for defining whether the backup type is differential or full

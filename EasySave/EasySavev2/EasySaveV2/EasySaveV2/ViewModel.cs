@@ -45,8 +45,7 @@ namespace EasySaveV2
         public bool IsProgressBarListEmpty => ProgressBarList == null || ProgressBarList.Count == 0;
         private string _inputText;
 
-        //---------------- A Changer !!------------------
-        private string _resultText = "No data to display";
+        private string _resultText;
 
         public string AppPrinterCalc
         {
@@ -93,6 +92,7 @@ namespace EasySaveV2
             OpenSettingsCommand = new RelayCommand(OpenSettings);
             SaveWork = new RelayCommand(Click, CanExecute);
             ProgressBarList = new ObservableCollection<ProgressBarElement> {};
+            _resultText = model.getMessage("{{ app.printer.noData }}");
         }
 
         private bool CanExecute(object parameter)
@@ -110,6 +110,8 @@ namespace EasySaveV2
 
         private void Click(object parameter)
         {
+            killAllThreads();
+            ProgressBarList.Clear();
             if (InputText == null)
             {
                 ResultText = model.getMessage("{{ error.noSave }}");
@@ -226,7 +228,12 @@ namespace EasySaveV2
                 model.setLang(lang);
                 model.setCopyMethod(copyType);
                 model.setEncryptFileType(selectedScriptingTypes);
+                model.setPriorityType(selectedPriorityType);
                 model.setMaxSizeTransfert(settingsWindow.currentMaxTransfert);
+                //Kill all thread and remove the lines
+                killAllThreads();
+                ProgressBarList.Clear();
+                ResultText = model.getMessage("{{ app.printer.noData }}");
                 OnPropertyChanged("AppPrinterCalc");
             }
         }
