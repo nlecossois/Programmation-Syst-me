@@ -26,6 +26,8 @@ namespace EasySaveV2
         public static Dictionary<int, Save> currentSaveProcess = new Dictionary<int, Save>();
         public static double currentTransferSize = 0;
         public static bool serverRun;
+        public static int totalSaves;
+        public static int prioritaryEnded;
     }
 
     public class Save
@@ -85,18 +87,27 @@ namespace EasySaveV2
             if (GlobalVariables.currentSaveProcess.TryGetValue(index, out Save currentSave))
             {
                 Trace.WriteLine("Action : " + action + " sur la save " + index);
-                if(action == "break")
+                try
                 {
-                    currentSave.isBreak = true;
-                } else if (action == "unbreak")
+                    if (action == "break")
+                    {
+                        currentSave.isBreak = true;
+                    }
+                    else if (action == "unbreak")
+                    {
+                        currentSave.isBreak = false;
+                    }
+                    else if (action == "kill")
+                    {
+                        currentSave.isBreak = false;
+                        currentSave.run = false;
+
+                    }
+                } catch(Exception ex)
                 {
-                    currentSave.isBreak = false;
-                } else if (action == "kill")
-                {
-                    currentSave.isBreak = false;
-                    currentSave.run = false;
-                    
+
                 }
+                
             }
         }
 
@@ -317,23 +328,33 @@ namespace EasySaveV2
                         break;
                         
                     }
-                    //We check if the file we are about to copy has priority
+                    //We check if the file we are about to copy has not priority
                     if (!PrioritaryToCopyFiles.Contains(currentFile))
                     {
                         //We wait for the other threads
-                        barrierPrioritaryFiles.Dispose();
+                        GlobalVariables.prioritaryEnded++;
+                        while (GlobalVariables.prioritaryEnded < GlobalVariables.totalSaves)
+                        {
+                            Thread.Sleep(1000);
+                        }
+                    }
+                    if (this.run == false)
+                    {
+                        break;
+
                     }
                     //We check if the maximum total size is not exceeded before starting the copy
                     //We start by getting the size of the file
                     FileInfo currentFileInfo = new FileInfo(currentFile);
                     long fileSizeInOctets = currentFileInfo.Length;
                     //We check that the maximum authorized size is not exceeded, otherwise we wait 1 second with a new try
+                    //Trace.WriteLine("Taille du fichier à copié: " + fileSizeInOctets + " - Taille globale de transfert en cours: " + GlobalVariables.currentTransferSize + " - Taille maximale de transfert simutanée: " + maxSameTimeSize);
                     while (((fileSizeInOctets + GlobalVariables.currentTransferSize) > maxSameTimeSize) && (GlobalVariables.currentTransferSize != 0))
                     {
                         Thread.Sleep(1000);
                     }
                     //If the simultaneous size allows it or is zero, we add the size of the current file to our total transfer size
-                    GlobalVariables.currentTransferSize += fileSizeInOctets;
+                    GlobalVariables.currentTransferSize = GlobalVariables.currentTransferSize + fileSizeInOctets;
                     //We retrieve the destination address relative to the source address
                     string destPath = sourcePath.Replace("Source", "Destination");
                     //We create the destination folder if it does not already exist
@@ -437,8 +458,9 @@ namespace EasySaveV2
                     mutexLog.ReleaseMutex();
 
                     //End of copying the file, we remove the size of the current file from our total transfer size
-                    GlobalVariables.currentTransferSize -= fileSizeInOctets;
+                    
                     Thread.Sleep(1000);
+                    GlobalVariables.currentTransferSize = GlobalVariables.currentTransferSize - fileSizeInOctets;
                 } else
                 {
                     //If this is no longer the case, get out of the loop
@@ -468,7 +490,7 @@ namespace EasySaveV2
         private List<string> selectedCryptFileType = new List<string>();
         private List<string> selectedPriorityFileType = new List<string>();
         private int maxSameTimeSaves = 64;
-        private int maxSameTimeSize = 50000;
+        private int maxSameTimeSize = 500000;
         private delegate void DELG(object state);
         private static System.Threading.Semaphore semaphore;
         private static int i = 0;
@@ -533,7 +555,7 @@ namespace EasySaveV2
             }
             catch (Exception ex)
             {
-                maxSameTimeSize = 50000;
+                maxSameTimeSize = 500000;
             }
         }
 

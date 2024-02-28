@@ -141,6 +141,9 @@ namespace EasySaveV2
                         //We perform the action to initialize and load the bars and return an empty ResultText.
                         ResultText = "";
 
+                        GlobalVariables.prioritaryEnded = 0;
+                        GlobalVariables.totalSaves = amountOfSaves;
+
                         //We first empty the list of progressbars
                         ProgressBarList.Clear();
 
