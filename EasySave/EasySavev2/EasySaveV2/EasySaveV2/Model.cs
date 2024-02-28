@@ -389,6 +389,8 @@ namespace EasySaveV2
                     float pct = ((fileCopied / fileTotal) * 100);
                     int finalPct = (int)Math.Ceiling(pct);
 
+                    string logPct = copied + "/" + total + " (" + pct + "%)";
+
                     //We pass it on to the other class
                     GlobalVariables.vm.EditProgressBarValue("Save " + saveIndex, finalPct);
 
@@ -398,14 +400,14 @@ namespace EasySaveV2
                     if (logFormat == "JSON")
                     {
                         //We format the content of the log
-                        JsonElement logContent = Model.SerializeContent("Save" + saveIndex, fileName, sourcePath, destPath, fileSize, copyTime.ElapsedMilliseconds, encryptTime);
+                        JsonElement logContent = Model.SerializeContent("Save" + saveIndex, fileName, sourcePath, destPath, fileSize, copyTime.ElapsedMilliseconds, encryptTime, logPct);
                         //We enter it in the daily log file
                         Model.WriteContentLog(logContent);
                     }
                     else if (logFormat == "XML")
                     {
                         //In the case of the log format is xml
-                        Model.WriteXmlLog("Save" + saveIndex, fileName, sourcePath, destPath, fileSize, copyTime.ElapsedMilliseconds, encryptTime);
+                        Model.WriteXmlLog("Save" + saveIndex, fileName, sourcePath, destPath, fileSize, copyTime.ElapsedMilliseconds, encryptTime, logPct);
                     }
                     mutexLog.ReleaseMutex();
 
@@ -821,7 +823,7 @@ namespace EasySaveV2
         }
 
         //Method that formats log content
-        public static JsonElement SerializeContent(string SaveName, string FileName, string SourcePath, string DestinationPath, long FileSize, long TransferTime, string CryptTime, bool state = false, int fileLeft = 0, int totalFile = 0, int sizeLeft = 0, int totalSize = 0)
+        public static JsonElement SerializeContent(string SaveName, string FileName, string SourcePath, string DestinationPath, long FileSize, long TransferTime, string CryptTime, string logPct)
         {
             using (var stream = new System.IO.MemoryStream())
             {
@@ -835,30 +837,12 @@ namespace EasySaveV2
                     jsonWriter.WriteString("Save", SaveName);
                     jsonWriter.WriteString("Source Path", SourcePath);
                     jsonWriter.WriteString("Destination Path", DestinationPath);
-                    if (!state)
-                    {
-                        jsonWriter.WriteString("File", FileName);
-                        jsonWriter.WriteNumber("File Size", FileSize);
-                        jsonWriter.WriteNumber("Transfer Time (ms)", TransferTime);
-                        jsonWriter.WriteString("Encryption", CryptTime);
-                    }
-                    else
-                    {
-
-                        jsonWriter.WriteNumber("File To Copy", totalFile);
-                        jsonWriter.WriteNumber("File Left", fileLeft);
-                        jsonWriter.WriteNumber("File Size Left To Copy", sizeLeft);
-                        jsonWriter.WriteNumber("File Size To Copy", totalSize);
-                        if (fileLeft == 0)
-                        {
-                            jsonWriter.WriteString("Transfert State", "Off");
-                        }
-                        else
-                        {
-                            jsonWriter.WriteString("Transfert State", "On");
-                        }
-
-                    }
+                    jsonWriter.WriteString("File", FileName);
+                    jsonWriter.WriteNumber("File Size", FileSize);
+                    jsonWriter.WriteNumber("Transfer Time (ms)", TransferTime);
+                    jsonWriter.WriteString("Encryption", CryptTime);
+                    jsonWriter.WriteString("Advancement", logPct);
+                 
                     //End of JSON object
                     jsonWriter.WriteEndObject();
                 }
@@ -902,7 +886,7 @@ namespace EasySaveV2
 
 
         //Method the writes to an xml log file
-        public static void WriteXmlLog(string SaveName, string FileName, string SourcePath, string DestinationPath, long FileSize, long TransferTime, string CryptTime)
+        public static void WriteXmlLog(string SaveName, string FileName, string SourcePath, string DestinationPath, long FileSize, long TransferTime, string CryptTime, string logPct)
         {
             //We get the address of the file
             string parentDirectory = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName;
@@ -920,7 +904,8 @@ namespace EasySaveV2
                          "      File: " + FileName + Environment.NewLine +
                          "      File Size: " + FileSize + "o" + Environment.NewLine +
                          "      Transfer Time: " + TransferTime + "ms" + Environment.NewLine +
-                         "      Encryption: " + CryptTime + Environment.NewLine;
+                         "      Encryption: " + CryptTime + Environment.NewLine + 
+                         "      Advancement: " + logPct + Environment.NewLine;
 
 
             //We check if the XML file does not exist to be able to initialize it
