@@ -11,6 +11,9 @@ using Newtonsoft.Json.Linq;
 using System.Text.RegularExpressions;
 using System.Xml;
 using System.Threading;
+using System.ComponentModel;
+using System.Net;
+using System.Net.Sockets;
 
 namespace EasySaveV2
 {
@@ -18,9 +21,11 @@ namespace EasySaveV2
     public static class GlobalVariables
     {
         public static ViewModel vm;
+        public static Server srv;
         public static int saveThreadProcess = 0;
         public static Dictionary<int, Save> currentSaveProcess = new Dictionary<int, Save>();
         public static double currentTransferSize = 0;
+        public static bool serverRun;
     }
 
     public class Save
@@ -45,11 +50,14 @@ namespace EasySaveV2
             this.total = 0;
             this.copied = 0;
             //Adding the object to the list of current backups
-            while (true)
+            bool notAdded = true;
+            while (notAdded)
             {
                 try
                 {
-                    GlobalVariables.currentSaveProcess.Add(saveIndex, this);
+                    Trace.WriteLine("Ajout de " + saveIndex);
+                    GlobalVariables.currentSaveProcess.Add(index, this);
+                    notAdded = false;
                     break;
                 }
                 catch(Exception ex)
@@ -67,8 +75,16 @@ namespace EasySaveV2
         public static void SaveInteract(int index, string action)
         {
             //The method will only perform an action if the backup is in progress
+            Trace.WriteLine("Tentative de " + action + " sur la save " + index);
+            foreach (KeyValuePair<int, Save> pair in GlobalVariables.currentSaveProcess)
+            {
+                Trace.WriteLine($"Clé: {pair.Key}, Valeur: {pair.Value}");
+            }
+
+
             if (GlobalVariables.currentSaveProcess.TryGetValue(index, out Save currentSave))
             {
+                Trace.WriteLine("Action : " + action + " sur la save " + index);
                 if(action == "break")
                 {
                     currentSave.isBreak = true;
@@ -77,7 +93,9 @@ namespace EasySaveV2
                     currentSave.isBreak = false;
                 } else if (action == "kill")
                 {
+                    currentSave.isBreak = false;
                     currentSave.run = false;
+                    
                 }
             }
         }
@@ -281,11 +299,14 @@ namespace EasySaveV2
                     if (this.run == false)
                     {
                         break;
+                        
                     }
                     //We check whether the business application is open or not, if so we wait a second and a half before trying again
                     if (Model.IsProcessOpen(jobApp))
                     {
+                        GlobalVariables.srv.Send("/SaveWaitForJobApp Save " + saveIndex);
                         GlobalVariables.vm.EditMessageOnProgressBar("Save " + saveIndex, "{{ thread.waitForJobApp }}");
+                        
                         while (Model.IsProcessOpen(jobApp))
                         {
                             Thread.Sleep(500);
@@ -294,6 +315,7 @@ namespace EasySaveV2
                     if (this.run == false)
                     {
                         break;
+                        
                     }
                     //We check if the file we are about to copy has priority
                     if (!PrioritaryToCopyFiles.Contains(currentFile))
@@ -394,6 +416,9 @@ namespace EasySaveV2
                     //We pass it on to the other class
                     GlobalVariables.vm.EditProgressBarValue("Save " + saveIndex, finalPct);
 
+                    //We pass the command to the client app
+                    GlobalVariables.srv.Send("/MajSave Save " + saveIndex + "-" + finalPct);
+
                     //here, we place a mutex so that only one thread at a time can access the log file
                     mutexLog.WaitOne();
                     //If log format is json:
@@ -418,6 +443,7 @@ namespace EasySaveV2
                 {
                     //If this is no longer the case, get out of the loop
                     GlobalVariables.vm.EditMessageOnProgressBar("Save " + saveIndex, "{{ thread.killed }}");
+                    GlobalVariables.srv.Send("/SaveKilled Save " + saveIndex);
                     break;
 
                 }
@@ -445,6 +471,8 @@ namespace EasySaveV2
         private int maxSameTimeSize = 50000;
         private delegate void DELG(object state);
         private static System.Threading.Semaphore semaphore;
+        private static int i = 0;
+
 
         //Method which allows you to manage a waiting list between all the backups which must be created.
         public void SemaphoreWaitList(List<int> listOfSaves)
@@ -477,7 +505,7 @@ namespace EasySaveV2
                 //Freeing up a place in the waiting list
                 GlobalVariables.saveThreadProcess--;
                 semaphore.Release();
-                
+
             };
             //For each backup : declaration
             foreach (int index in listOfSaves)
@@ -491,7 +519,7 @@ namespace EasySaveV2
         }
 
         //Method for performing an action on a backup
-        public void actionOnSave(int index, string action)
+        public static void actionOnSave(int index, string action)
         {
             Save.SaveInteract(index, action);
         }

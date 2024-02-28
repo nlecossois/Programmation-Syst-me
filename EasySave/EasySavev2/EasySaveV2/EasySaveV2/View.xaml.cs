@@ -14,6 +14,8 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.ComponentModel;
+using System.Diagnostics;
 
 namespace EasySaveV2
 {
@@ -26,6 +28,7 @@ public partial class View : Window
         {
             //Here we carry out the control to make the application single-instance using a mutex
             Mutex mutex = new Mutex(true, "{F48SDQF6f-sd8g-54fs-48p2-JH2IKK6A8}");
+            Server server = new Server();
 
             //If the mutex is already taken this means that another instance of the application is running on this device
             if (!mutex.WaitOne(TimeSpan.Zero, true))
@@ -42,17 +45,29 @@ public partial class View : Window
             {
                 InitializeComponent();
                 DataContext = new ViewModel();
+                Thread serverThread = new Thread(server.Start);
+                GlobalVariables.srv = server;
+                serverThread.Start();
+                Closing += Window_Closing;
+
             }
 
 
             void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
             {
-                //We kill all the threads
-                GlobalVariables.vm.killAllThreads();
+                mutex.ReleaseMutex();
+                server.Stop();
+
+
+                //We kill the threads
+                foreach (int el in GlobalVariables.currentSaveProcess.Keys)
+                {
+                    Model.actionOnSave(el, "kill");
+                    
+                }
+
                 mutex.ReleaseMutex();
             }
-
-            
         }
 
     }

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -91,9 +92,11 @@ namespace EasySaveV2
         {
             OpenSettingsCommand = new RelayCommand(OpenSettings);
             SaveWork = new RelayCommand(Click, CanExecute);
-            ProgressBarList = new ObservableCollection<ProgressBarElement> {};
+            ProgressBarList = new ObservableCollection<ProgressBarElement> { };
             _resultText = model.getMessage("{{ app.printer.noData }}");
         }
+
+
 
         private bool CanExecute(object parameter)
         {
@@ -110,7 +113,6 @@ namespace EasySaveV2
 
         private void Click(object parameter)
         {
-            killAllThreads();
             ProgressBarList.Clear();
             if (InputText == null)
             {
@@ -148,6 +150,9 @@ namespace EasySaveV2
                             ProgressBarList.Add(
                             new ProgressBarElement { Name = "Save " + index, ProgressBarValue = 0 }
                         );}
+                        //We send data to app client
+                        GlobalVariables.srv.Send("/SaveList " + string.Join("-", listOfSaves));
+
                         //We call the model method which will take care of threading each backup and managing the waiting list
                         model.SemaphoreWaitList(listOfSaves);
                         GlobalVariables.vm = this;
@@ -156,12 +161,20 @@ namespace EasySaveV2
             }
         }
 
-        //Method to kill all running threads
-        public void killAllThreads()
+        //Method to play/pause a progress bar
+        public void EditProgressBarState(string name, bool state)
         {
-            foreach(int el in GlobalVariables.currentSaveProcess.Keys)
+            //Browse the ProgressBarList collection
+            foreach (var element in ProgressBarList)
             {
-                model.actionOnSave(el, "kill");
+                //Check if the name matches
+                if (element.Name == name)
+                {
+                    //Update progress bar value
+                    element.IsPlaying = state;
+                    //Exit the loop because we found the element
+                    break;
+                }
             }
         }
 
@@ -200,6 +213,26 @@ namespace EasySaveV2
             }
         }
 
+        //Method to return the value of a progress bar
+        public int getProgressBarValue(string name)
+        {
+            int rt = 0;
+
+            foreach (var element in ProgressBarList)
+            {
+                //Check if the name matches
+                if (element.Name == name)
+                {
+                    //Return progress bar value
+                    rt = element.ProgressBarValue;
+
+                    //Exit the loop because we found the element
+                    break;
+                }
+            }
+            return rt;
+        }
+
         //Method used to get max transfert size
         public string getMaxTransfert()
         {
@@ -231,7 +264,12 @@ namespace EasySaveV2
                 model.setPriorityType(selectedPriorityType);
                 model.setMaxSizeTransfert(settingsWindow.currentMaxTransfert);
                 //Kill all thread and remove the lines
-                killAllThreads();
+                foreach (int el in GlobalVariables.currentSaveProcess.Keys)
+                {
+                    Model.actionOnSave(el, "kill");
+                    
+                }
+                Trace.WriteLine("Kill all threads!");
                 ProgressBarList.Clear();
                 ResultText = model.getMessage("{{ app.printer.noData }}");
                 OnPropertyChanged("AppPrinterCalc");
@@ -308,15 +346,17 @@ namespace EasySaveV2
                 if (!IsPlaying)
                 {
                     //Pause logic
-                    model.actionOnSave(int.Parse(part), "break");
+                    Model.actionOnSave(int.Parse(part), "break");
                     GlobalVariables.vm.EditMessageOnProgressBar(name, _progressBarValue + "% - {{ thread.paused }}");
-                    
+                    GlobalVariables.srv.Send("/SaveBreak Save " + part);
+
                 }
                 else
                 {
                     //Boot logic
-                    model.actionOnSave(int.Parse(part), "unbreak");
+                    Model.actionOnSave(int.Parse(part), "unbreak");
                     GlobalVariables.vm.EditMessageOnProgressBar(name, _progressBarValue + "%");
+                    GlobalVariables.srv.Send("/SaveUnbreak Save " + part);
                 }
             }
             IsPlaying = !IsPlaying;
@@ -327,8 +367,9 @@ namespace EasySaveV2
             //Stop logic
             string name = parameter.ToString();
             string part = name.Split(' ')[1];
-            model.actionOnSave(int.Parse(part), "kill");
+            Model.actionOnSave(int.Parse(part), "kill");
             GlobalVariables.vm.EditMessageOnProgressBar(name, "{{ thread.killed }}");
+            GlobalVariables.srv.Send("/SaveKilled Save " + part);
         }
 
         public event PropertyChangedEventHandler PropertyChanged;

@@ -1,0 +1,31 @@
+﻿{
+	"app.printer.calc": "Save",
+	"app.printer.cancelParam": "Cancel",
+	"app.printer.copyType": "Select file backup type:",
+	"app.printer.cryptType": "Select file encryption type:",
+	"app.printer.jobApp": "Enter job software name:",
+	"app.printer.language": "Choose a language:",
+	"app.printer.logType": "Select log file format:",
+	"app.printer.saveParam": "Save",
+	"app.printer.maxTransfert": "Enter the maximum transfer size (o):",
+	"app.printer.noData": "No data to display",
+	"app.printer.prioritaryType": "Select priority file types:",
+
+	"error.fillSyntax": "Error: Syntax for using '-' must contain two numbers between 1 and 5 where the first is less than the second.",
+	"error.noSave": "Error: You haven't provided any valid backup.",
+	"error.notFound": "Error: This backup name is not recognized.",
+	"error.saver.noFolder": "Unable to find your source folders.",
+	"error.separatorSyntax": "Error: Syntax for using ';' must contain numbers between 1 and 5.",
+
+	"printer.copyType.complete": "Complete",
+	"printer.copyType.differential": "Differential",
+
+	"thread.paused": "Backup paused",
+	"thread.killed": "/!\\ Backup aborted",
+	"thread.waitForJobApp": "Paused - Business application running",
+
+	"app.printer.waitForServer": "Waiting for a connection to the server...",
+	"app.printer.waitForData": "Waiting for data to be received..."
+
+
+}

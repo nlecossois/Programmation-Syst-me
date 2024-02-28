@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "OAiFBzR5icvmTISgsS2tURqBxiYAveocs6UZ11ogh5M5EXPN8dAAGgt/yx1XVW84vXSA/ShvdKYvj4PqbMRP9g==",
+  "success": true,
+  "projectFilePath": "D:\\Desktop\\CESI\\A3 - FISA INFO\\2 - Programmation Système\\Projet\\Repo\\EasySave\\EasySaveClient\\EasySaveV2\\EasySaveV2\\EasySaveClient.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\lecos\\.nuget\\packages\\newtonsoft.json\\13.0.3\\newtonsoft.json.13.0.3.nupkg.sha512"
+  ],
+  "logs": []
+}
