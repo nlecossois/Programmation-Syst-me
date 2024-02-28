@@ -23,6 +23,7 @@ namespace EasySaveV2
         public string logType;
         public string copyType;
         public List<string> selectedScriptingTypes = new List<string>();
+        public List<string> selectedPriorityType = new List<string>();
 
         private ObservableCollection<ProgressBarElement> _progressBarList;
         public ObservableCollection<ProgressBarElement> ProgressBarList {
@@ -36,12 +37,16 @@ namespace EasySaveV2
                 {
                     _progressBarList = value;
                     OnPropertyChanged(nameof(ProgressBarList));
+                    OnPropertyChanged(nameof(IsProgressBarListEmpty));
                 }
                 
             }
         }
+        public bool IsProgressBarListEmpty => ProgressBarList == null || ProgressBarList.Count == 0;
         private string _inputText;
-        private string _resultText;
+
+        //---------------- A Changer !!------------------
+        private string _resultText = "No data to display";
 
         public string AppPrinterCalc
         {
@@ -211,7 +216,8 @@ namespace EasySaveV2
             if (result == true)
             {
                 //Logic to execute if user pressed save
-                selectedScriptingTypes = settingsWindow.selectedItems;
+                selectedScriptingTypes = settingsWindow.selectedScripting;
+                selectedPriorityType = settingsWindow.selectedPriority;
                 lang = settingsWindow.SelectedLanguage;
                 logType = settingsWindow.SelectedLogType;
                 copyType = settingsWindow.SelectedCopyType;

@@ -24,7 +24,6 @@ namespace EasySaveV2
         public string SelectedLanguage { get; set; }
         public string currentJobApp;
         public string currentMaxTransfert;
-        private List<string> _selectedScriptingTypes;
         public string SelectedLogType { get; set; }
         public string SelectedCopyType { get; set; }
         public ICommand SaveCommand { get; private set; }
@@ -33,7 +32,8 @@ namespace EasySaveV2
         public List<string> Languages { get; set; }
         public List<string> logType { get; set; }
         public List<string> copyType { get; set; }
-        public List<string> selectedItems { get; set; }
+        public List<string> selectedScripting { get; set; }
+        public List<string> selectedPriority { get; set; }
         private ObservableCollection<string> scriptingType;
         public ObservableCollection<string> ScriptType
         {
@@ -44,6 +44,20 @@ namespace EasySaveV2
                 {
                     scriptingType = value;
                     OnPropertyChanged(nameof(ScriptType));
+                }
+            }
+        }
+        private ObservableCollection<string> prioritoryDoc;
+
+        public ObservableCollection<string> documentType
+        {
+            get { return prioritoryDoc; }
+            set
+            {
+                if (prioritoryDoc != value)
+                {
+                    prioritoryDoc = value;
+                    OnPropertyChanged(nameof(prioritoryDoc));
                 }
             }
         }
@@ -72,8 +86,10 @@ namespace EasySaveV2
             Languages = new List<string>();
             logType = new List<string>();
             copyType = new List<string>();
-            selectedItems = new List<string>();
-            
+            selectedScripting = new List<string>();
+            selectedPriority = new List<string>();
+
+
 
             InitializeComponent();
             Setup();
@@ -93,22 +109,34 @@ namespace EasySaveV2
 
         private void UpdateSelection()
         {
+            //-------- Update Scripting field ---------
             //Update the selection manually
             ScriptingType.SelectedItems.Clear();
-            selectedItems.Clear();
             foreach (ScriptTypeItem item in ScriptingType.Items)
             {
+                item.IsSelected = ScriptingType.SelectedItems.Contains(item);
                 if (item.IsSelected)
                 {
-                    ScriptingType.SelectedItems.Add(item);
+                    selectedScripting.Add(item.ScriptTypeName);
                 }
             }
 
-            //Access to selected items
-            foreach (ScriptTypeItem selectedItem in ScriptingType.SelectedItems)
+            //-------- Update Priority field ---------
+            docType.SelectedItems.Clear();
+            selectedPriority.Clear();
+            foreach (PriorityTypeItem item in docType.Items)
             {
-                selectedItems.Add(selectedItem.ScriptTypeName);
+                if (item.IsSelected)
+                {
+                    selectedPriority.Add(item.docTypeName);
+                }
             }
+
+            //foreach (PriorityTypeItem selectedItem in docType.SelectedItems)
+            //{
+            //    selectedPriority.Add(selectedItem.docTypeName);
+            //}
+
         }
 
 
@@ -149,7 +177,7 @@ namespace EasySaveV2
             Language.SelectedItem = Languages.Contains(viewModel.lang, StringComparer.OrdinalIgnoreCase) ? viewModel.lang : "EN";
             LogType.SelectedItem = logType.Contains(viewModel.logType, StringComparer.OrdinalIgnoreCase) ? viewModel.logType : "Json";
             CopyType.SelectedItem = copyType.Contains(viewModel.copyType, StringComparer.OrdinalIgnoreCase) ? viewModel.copyType : viewModel.getMessageFromParameter("{{ printer.copyType.complete }}");
-            List<ScriptTypeItem> scriptTypeList = new List<ScriptTypeItem>
+            List<ScriptTypeItem> docTypeList = new List<ScriptTypeItem>
             {
                 new ScriptTypeItem { ScriptTypeName = "apk", IsSelected = false },
                 new ScriptTypeItem { ScriptTypeName = "csv", IsSelected = false },
@@ -197,7 +225,55 @@ namespace EasySaveV2
                 new ScriptTypeItem { ScriptTypeName = "yaml", IsSelected = false },
                 new ScriptTypeItem { ScriptTypeName = "zip", IsSelected = false },
             };
-            foreach (ScriptTypeItem item in scriptTypeList)
+            List<PriorityTypeItem> priorityTypeList = new List<PriorityTypeItem>
+            {
+                new PriorityTypeItem { docTypeName = "apk", IsSelected = false },
+                new PriorityTypeItem { docTypeName = "csv", IsSelected = false },
+                new PriorityTypeItem { docTypeName = "css", IsSelected = false },
+                new PriorityTypeItem { docTypeName = "cpp", IsSelected = false },
+                new PriorityTypeItem { docTypeName = "cs", IsSelected = false },
+                new PriorityTypeItem { docTypeName = "db", IsSelected = false },
+                new PriorityTypeItem { docTypeName = "dll", IsSelected = false },
+                new PriorityTypeItem { docTypeName = "docx", IsSelected = false },
+                new PriorityTypeItem { docTypeName = "exe", IsSelected = false },
+                new PriorityTypeItem { docTypeName = "gif", IsSelected = false },
+                new PriorityTypeItem { docTypeName = "html", IsSelected = false },
+                new PriorityTypeItem { docTypeName = "ini", IsSelected = false },
+                new PriorityTypeItem { docTypeName = "iso", IsSelected = false },
+                new PriorityTypeItem { docTypeName = "jar", IsSelected = false },
+                new PriorityTypeItem { docTypeName = "java", IsSelected = false },
+                new PriorityTypeItem { docTypeName = "js", IsSelected = false },
+                new PriorityTypeItem { docTypeName = "json", IsSelected = false },
+                new PriorityTypeItem { docTypeName = "jpg", IsSelected = false },
+                new PriorityTypeItem { docTypeName = "jpeg", IsSelected = false },
+                new PriorityTypeItem { docTypeName = "lib", IsSelected = false },
+                new PriorityTypeItem { docTypeName = "log", IsSelected = false },
+                new PriorityTypeItem { docTypeName = "m4v", IsSelected = false },
+                new PriorityTypeItem { docTypeName = "mp3", IsSelected = false },
+                new PriorityTypeItem { docTypeName = "mp4", IsSelected = false },
+                new PriorityTypeItem { docTypeName = "pdf", IsSelected = false },
+                new PriorityTypeItem { docTypeName = "php", IsSelected = false },
+                new PriorityTypeItem { docTypeName = "png", IsSelected = false },
+                new PriorityTypeItem { docTypeName = "ppt", IsSelected = false },
+                new PriorityTypeItem { docTypeName = "pptx", IsSelected = false },
+                new PriorityTypeItem { docTypeName = "py", IsSelected = false },
+                new PriorityTypeItem { docTypeName = "rar", IsSelected = false },
+                new PriorityTypeItem { docTypeName = "rtf", IsSelected = false },
+                new PriorityTypeItem { docTypeName = "sh", IsSelected = false },
+                new PriorityTypeItem { docTypeName = "sql", IsSelected = false },
+                new PriorityTypeItem { docTypeName = "tar.gz", IsSelected = false },
+                new PriorityTypeItem { docTypeName = "ts", IsSelected = false },
+                new PriorityTypeItem { docTypeName = "txt", IsSelected = false },
+                new PriorityTypeItem { docTypeName = "wav", IsSelected = false },
+                new PriorityTypeItem { docTypeName = "webp", IsSelected = false },
+                new PriorityTypeItem { docTypeName = "xls", IsSelected = false },
+                new PriorityTypeItem { docTypeName = "xlsx", IsSelected = false },
+                new PriorityTypeItem { docTypeName = "xml", IsSelected = false },
+                new PriorityTypeItem { docTypeName = "xaml", IsSelected = false },
+                new PriorityTypeItem { docTypeName = "yaml", IsSelected = false },
+                new PriorityTypeItem { docTypeName = "zip", IsSelected = false },
+            };
+            foreach (ScriptTypeItem item in docTypeList)
             {
                 //Check if the item should be selected by default
                 if (viewModel.selectedScriptingTypes.Contains(item.ScriptTypeName, StringComparer.OrdinalIgnoreCase))
@@ -205,8 +281,17 @@ namespace EasySaveV2
                     item.IsSelected = true;
                 }
             }
+            foreach (PriorityTypeItem item in priorityTypeList)
+            {
+                // Check if the item should be selected by default
+                if (viewModel.selectedPriorityType.Contains(item.docTypeName, StringComparer.OrdinalIgnoreCase))
+                {
+                    item.IsSelected = true;
+                }
+            }
             //Initialize the list with ScriptingTypeItem objects
-            ScriptingType.ItemsSource = scriptTypeList;
+            docType.ItemsSource = priorityTypeList;
+            ScriptingType.ItemsSource = docTypeList;
             SaveCommand = new RelayCommand(SaveSettings);
             CancelCommand = new RelayCommand(CancelSettings);
             DataContext = this;
@@ -233,8 +318,13 @@ namespace EasySaveV2
         }
     }
     public class ScriptTypeItem
-{
-    public string ScriptTypeName { get; set; }
-    public bool IsSelected { get; set; }
-}
+    {
+        public string ScriptTypeName { get; set; }
+        public bool IsSelected { get; set; }
+    }
+    public class PriorityTypeItem
+    {
+        public string docTypeName { get; set; }
+        public bool IsSelected { get; set; }
+    }
 }
