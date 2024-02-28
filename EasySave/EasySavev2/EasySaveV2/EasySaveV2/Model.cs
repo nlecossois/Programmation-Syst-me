@@ -20,7 +20,7 @@ namespace EasySaveV2
         public static ViewModel vm;
         public static int saveThreadProcess = 0;
         public static Dictionary<int, Save> currentSaveProcess = new Dictionary<int, Save>();
-        public static double currentTransfertSize = 0;
+        public static double currentTransferSize = 0;
     }
 
     public class Save
@@ -306,12 +306,12 @@ namespace EasySaveV2
                     FileInfo currentFileInfo = new FileInfo(currentFile);
                     long fileSizeInOctets = currentFileInfo.Length;
                     //We check that the maximum authorized size is not exceeded, otherwise we wait 1 second with a new try
-                    while (((fileSizeInOctets + GlobalVariables.currentTransfertSize) > maxSameTimeSize) && (GlobalVariables.currentTransfertSize != 0))
+                    while (((fileSizeInOctets + GlobalVariables.currentTransferSize) > maxSameTimeSize) && (GlobalVariables.currentTransferSize != 0))
                     {
                         Thread.Sleep(1000);
                     }
                     //If the simultaneous size allows it or is zero, we add the size of the current file to our total transfer size
-                    GlobalVariables.currentTransfertSize += fileSizeInOctets;
+                    GlobalVariables.currentTransferSize += fileSizeInOctets;
                     //We retrieve the destination address relative to the source address
                     string destPath = sourcePath.Replace("Source", "Destination");
                     //We create the destination folder if it does not already exist
@@ -410,7 +410,7 @@ namespace EasySaveV2
                     mutexLog.ReleaseMutex();
 
                     //End of copying the file, we remove the size of the current file from our total transfer size
-                    GlobalVariables.currentTransfertSize -= fileSizeInOctets;
+                    GlobalVariables.currentTransferSize -= fileSizeInOctets;
                     Thread.Sleep(1000);
                 } else
                 {
@@ -448,7 +448,7 @@ namespace EasySaveV2
         {
             Barrier barrierPrioritaryFiles = new Barrier(participantCount: listOfSaves.Count());
             //Resetting the current transfer size (in case it has not reset itself to 0)
-            GlobalVariables.currentTransfertSize = 0;
+            GlobalVariables.currentTransferSize = 0;
             //Semaphore declaration
             semaphore = new System.Threading.Semaphore(maxSameTimeSaves, maxSameTimeSaves);
             DELG waitList = (state) =>
