@@ -1,0 +1,26 @@
+﻿{
+	"app.printer.calc": "Salva",
+	"app.printer.cancelParam": "Annulla",
+	"app.printer.copyType": "Seleziona il tipo di backup dei file:",
+	"app.printer.cryptType": "Seleziona i tipi di file da crittografare:",
+	"app.printer.jobApp": "Inserisci il nome del software di lavoro:",
+	"app.printer.language": "Seleziona una lingua:",
+	"app.printer.logType": "Seleziona il formato del file di registro:",
+	"app.printer.saveParam": "Salva",
+	"app.printer.maxTransfert": "Inserisci la dimensione massima di trasferimento (o):",
+	"app.printer.noData": "Nessun dato da visualizzare",
+	"app.printer.prioritaryType": "Seleziona i tipi di file prioritari:",
+
+	"error.fillSyntax": "Errore: La sintassi per l'uso di '-' deve contenere due numeri compresi tra 1 e 5, dove il primo è inferiore al secondo.",
+	"error.noSave": "Errore: Non hai fornito alcun backup valido.",
+	"error.notFound": "Errore: Questo nome di backup non è riconosciuto.",
+	"error.saver.noFolder": "Impossibile trovare le tue cartelle sorgente.",
+	"error.separatorSyntax": "Errore: La sintassi per l'uso di ';' deve contenere numeri tra 1 e 5.",
+
+	"printer.copyType.complete": "Completo",
+	"printer.copyType.differential": "Differenziale",
+
+	"thread.paused": "Backup in pausa",
+	"thread.killed": "/!\\ Backup interrotto",
+	"thread.waitForJobApp": "In pausa - Applicazione di lavoro in esecuzione"
+}

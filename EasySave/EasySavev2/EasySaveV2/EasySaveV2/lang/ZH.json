@@ -1,0 +1,26 @@
+﻿{
+	"app.printer.calc": "保存",
+	"app.printer.cancelParam": "取消",
+	"app.printer.copyType": "选择文件备份类型：",
+	"app.printer.cryptType": "选择要加密的文件类型：",
+	"app.printer.jobApp": "输入工作软件的名称：",
+	"app.printer.language": "选择语言：",
+	"app.printer.logType": "选择日志文件格式：",
+	"app.printer.saveParam": "保存",
+	"app.printer.maxTransfert": "输入最大传输大小（o）：",
+	"app.printer.noData": "没有要显示的数据",
+	"app.printer.prioritaryType": "选择优先文件类型：",
+
+	"error.fillSyntax": "错误：使用'-'的语法必须包含两个介于1和5之间的数字，其中第一个小于第二个。",
+	"error.noSave": "错误：您未提供任何有效的备份。",
+	"error.notFound": "错误：此备份名称无法识别。",
+	"error.saver.noFolder": "无法找到您的源文件夹。",
+	"error.separatorSyntax": "错误：使用';'的语法必须包含介于1和5之间的数字。",
+
+	"printer.copyType.complete": "完整",
+	"printer.copyType.differential": "差异",
+
+	"thread.paused": "备份已暂停",
+	"thread.killed": "/!\\ 备份中止",
+	"thread.waitForJobApp": "已暂停 - 工作应用程序正在运行"
+}

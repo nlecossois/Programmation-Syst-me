@@ -1,0 +1,26 @@
+﻿{
+	"app.printer.calc": "保存する",
+	"app.printer.cancelParam": "キャンセル",
+	"app.printer.copyType": "ファイルのバックアップタイプを選択してください：",
+	"app.printer.cryptType": "暗号化するファイルタイプを選択してください：",
+	"app.printer.jobApp": "作業ソフトウェアの名前を入力してください：",
+	"app.printer.language": "言語を選択してください：",
+	"app.printer.logType": "ログファイルの形式を選択してください：",
+	"app.printer.saveParam": "保存する",
+	"app.printer.maxTransfert": "最大転送サイズを入力してください（o）：",
+	"app.printer.noData": "表示するデータはありません",
+	"app.printer.prioritaryType": "優先するファイルタイプを選択してください：",
+
+	"error.fillSyntax": "エラー：'-'を使用する構文は、最初が2番目より小さい1から5までの2つの数を含む必要があります。",
+	"error.noSave": "エラー：有効なバックアップが提供されていません。",
+	"error.notFound": "エラー：このバックアップ名は認識されません。",
+	"error.saver.noFolder": "ソースフォルダが見つかりません。",
+	"error.separatorSyntax": "エラー：';'を使用する構文は、1から5までの数を含む必要があります。",
+
+	"printer.copyType.complete": "完全",
+	"printer.copyType.differential": "差分",
+
+	"thread.paused": "バックアップが一時停止しました",
+	"thread.killed": "/!\\ バックアップが中止されました",
+	"thread.waitForJobApp": "一時停止中 - 作業アプリケーションが実行中です"
+}

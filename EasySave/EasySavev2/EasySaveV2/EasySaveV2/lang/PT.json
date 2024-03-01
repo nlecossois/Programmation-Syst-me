@@ -1,0 +1,26 @@
+﻿{
+	"app.printer.calc": "Salvar",
+	"app.printer.cancelParam": "Cancelar",
+	"app.printer.copyType": "Selecione o tipo de backup de arquivos:",
+	"app.printer.cryptType": "Selecione os tipos de arquivos para criptografar:",
+	"app.printer.jobApp": "Digite o nome do software de trabalho:",
+	"app.printer.language": "Escolha um idioma:",
+	"app.printer.logType": "Selecione o formato do arquivo de log:",
+	"app.printer.saveParam": "Salvar",
+	"app.printer.maxTransfert": "Digite o tamanho máximo de transferência (o):",
+	"app.printer.noData": "Nenhum dado para exibir",
+	"app.printer.prioritaryType": "Selecione os tipos de arquivos prioritários:",
+
+	"error.fillSyntax": "Erro: A sintaxe para usar '-' deve conter dois números entre 1 e 5, onde o primeiro é menor que o segundo.",
+	"error.noSave": "Erro: Você não forneceu nenhum backup válido.",
+	"error.notFound": "Erro: Este nome de backup não é reconhecido.",
+	"error.saver.noFolder": "Não foi possível encontrar suas pastas de origem.",
+	"error.separatorSyntax": "Erro: A sintaxe para usar ';' deve conter números entre 1 e 5.",
+
+	"printer.copyType.complete": "Completo",
+	"printer.copyType.differential": "Diferencial",
+
+	"thread.paused": "Backup pausado",
+	"thread.killed": "/!\\ Backup abortado",
+	"thread.waitForJobApp": "Pausado - Aplicativo de trabalho em execução"
+}

@@ -99,8 +99,13 @@ namespace EasySaveV2
                     }
                     else if (action == "kill")
                     {
-                        currentSave.isBreak = false;
-                        currentSave.run = false;
+                        try
+                        {
+                            currentSave.isBreak = false;
+                            currentSave.run = false;
+                        } catch(Exception ex) { 
+                        }
+                        
 
                     }
                 } catch(Exception ex)

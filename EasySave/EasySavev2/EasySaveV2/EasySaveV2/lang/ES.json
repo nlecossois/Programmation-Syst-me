@@ -1,0 +1,26 @@
+﻿{
+	"app.printer.calc": "Guardar",
+	"app.printer.cancelParam": "Cancelar",
+	"app.printer.copyType": "Seleccione el tipo de copia de seguridad de archivos:",
+	"app.printer.cryptType": "Seleccione los tipos de archivos a cifrar:",
+	"app.printer.jobApp": "Ingrese el nombre del software de trabajo:",
+	"app.printer.language": "Elija un idioma:",
+	"app.printer.logType": "Seleccione el formato del archivo de registro:",
+	"app.printer.saveParam": "Guardar",
+	"app.printer.maxTransfert": "Ingrese el tamaño máximo de transferencia (o):",
+	"app.printer.noData": "No hay datos para mostrar",
+	"app.printer.prioritaryType": "Seleccione los tipos de archivos prioritarios:",
+
+	"error.fillSyntax": "Error: La sintaxis para usar '-' debe contener dos números entre 1 y 5, donde el primero es menor que el segundo.",
+	"error.noSave": "Error: No ha proporcionado ninguna copia de seguridad válida.",
+	"error.notFound": "Error: Este nombre de copia de seguridad no es reconocido.",
+	"error.saver.noFolder": "No se pueden encontrar sus carpetas fuente.",
+	"error.separatorSyntax": "Error: La sintaxis para usar ';' debe contener números entre 1 y 5.",
+
+	"printer.copyType.complete": "Completa",
+	"printer.copyType.differential": "Diferencial",
+
+	"thread.paused": "Copia de seguridad en pausa",
+	"thread.killed": "/!\\ Copia de seguridad abortada",
+	"thread.waitForJobApp": "En pausa - Aplicación de trabajo en ejecución"
+}

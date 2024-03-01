@@ -1,0 +1,26 @@
+﻿{
+	"app.printer.calc": "Speichern",
+	"app.printer.cancelParam": "Abbrechen",
+	"app.printer.copyType": "Wählen Sie den Dateisicherungstyp aus:",
+	"app.printer.cryptType": "Wählen Sie die zu verschlüsselnden Dateitypen aus:",
+	"app.printer.jobApp": "Geben Sie den Namen der Arbeitssoftware ein:",
+	"app.printer.language": "Wählen Sie eine Sprache aus:",
+	"app.printer.logType": "Wählen Sie das Format der Protokolldatei aus:",
+	"app.printer.saveParam": "Speichern",
+	"app.printer.maxTransfert": "Geben Sie die maximale Übertragungsgröße (o) ein:",
+	"app.printer.noData": "Keine Daten zum Anzeigen vorhanden",
+	"app.printer.prioritaryType": "Wählen Sie die prioritären Dateitypen aus:",
+
+	"error.fillSyntax": "Fehler: Die Syntax für die Verwendung von '-' muss zwei Zahlen zwischen 1 und 5 enthalten, wobei die erste kleiner als die zweite sein muss.",
+	"error.noSave": "Fehler: Sie haben keine gültige Sicherung bereitgestellt.",
+	"error.notFound": "Fehler: Dieser Sicherungsname wird nicht erkannt.",
+	"error.saver.noFolder": "Ihre Quellordner konnten nicht gefunden werden.",
+	"error.separatorSyntax": "Fehler: Die Syntax für die Verwendung von ';' muss Zahlen zwischen 1 und 5 enthalten.",
+
+	"printer.copyType.complete": "Vollständig",
+	"printer.copyType.differential": "Differentiell",
+
+	"thread.paused": "Sicherung pausiert",
+	"thread.killed": "/!\\ Sicherung abgebrochen",
+	"thread.waitForJobApp": "Pausiert - Arbeitsanwendung wird ausgeführt"
+}
